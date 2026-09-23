@@ -1,0 +1,142 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:avaloniaEdit="clr-namespace:AvaloniaEdit;assembly=AvaloniaEdit"
+             xmlns:mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:viewModels="clr-namespace:aSql.ViewModels"
+             xmlns:views1="clr-namespace:aSql.Views"
+             x:Class="aSql.Views.SqlEditorView"
+             x:Name="SqlEditorRoot"
+             x:DataType="viewModels:SqlEditorViewModel"
+             mc:Ignorable="d"
+             MinHeight="300"
+             MaxHeight="900">
+
+  <UserControl.Resources>
+  </UserControl.Resources>
+
+  <TabControl x:Name="MainTab"
+              Margin="-5, -13, -5, 13"
+              BorderThickness="1"
+              FontSize="10"
+              SelectionChanged="MainTab_OnSelectionChanged">
+    <TabItem Header="SQL"
+             FontFamily="Inter, Segoe UI, Arial"
+             FontWeight="Bold"
+             FontSize="15"
+             Foreground="#FFB9C0C8">
+      <Grid RowDefinitions="30,*" x:Name="RootGrid">
+        <Grid Grid.Row="0" ColumnDefinitions="Auto,Auto,*,Auto" Margin="4,4,4,0">
+          <Button Grid.Column="0"
+                  Width="30"
+                  Height="28"
+                  Padding="0"
+                  ToolTip.Tip="SQL-Text in die Zwischenablage kopieren"
+                  Click="CopySqlTextButton_OnClick">
+            <mi:MaterialIcon Kind="ContentCopy" Width="16" Height="16" />
+          </Button>
+
+          <Button Grid.Column="1"
+                  Width="30"
+                  Height="28"
+                  Padding="0"
+                  ToolTip.Tip="SQL-Text aus der Zwischenablage einfügen"
+                  Click="PasteSqlTextButton_OnClick">
+            <mi:MaterialIcon Kind="ContentPaste" Width="16" Height="16" />
+          </Button>
+
+          <Button Grid.Column="3"
+                  Width="30"
+                  Height="28"
+                  Padding="0"
+                  ToolTip.Tip="Text-Standardeinstellungen restaurieren"
+                  Click="StandardSettingsRestoreButton_OnClick">
+            <mi:MaterialIcon Kind="Restore" Width="16" Height="16" />
+          </Button>
+        </Grid>
+
+        <avaloniaEdit:TextEditor x:Name="SqlEditor"
+                                 Grid.Row="1"
+                                 Margin="3"
+                                 BorderThickness="1"
+                                 BorderBrush="DimGray"
+                                 ShowLineNumbers="True"
+                                 HorizontalAlignment="Stretch"
+                                 VerticalAlignment="Stretch"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 VerticalScrollBarVisibility="Auto"
+                                 Foreground="#FFC7CDD4"
+                                 FontFamily="Cascadia Mono, Consolas, Courier New"
+                                 FontSize="13" />
+
+      </Grid>
+    </TabItem>
+    <TabItem Header="Tables"
+             FontFamily="Inter, Segoe UI, Arial"
+             FontWeight="Bold"
+             FontSize="15"
+             Foreground="#FFB9C0C8">
+      <views1:TablesGridView x:Name="TablesGrid"
+                             BorderThickness="1"
+                             BorderBrush="DimGray"
+                             DataContext="{ CompiledBinding TablesGrid }" />
+
+    </TabItem>
+    <TabItem Header="Fields"
+             FontFamily="Inter, Segoe UI, Arial"
+             FontWeight="Bold"
+             FontSize="15"
+             Foreground="#FFB9C0C8">
+      <views1:FieldsGridView x:Name="FieldsGrid"
+                             BorderThickness="1"
+                             BorderBrush="DimGray"
+                             DataContext="{ CompiledBinding FieldsGrid }" />
+
+    </TabItem>
+    <TabItem Header="Joins"
+             FontFamily="Inter, Segoe UI, Arial"
+             FontWeight="Bold"
+             FontSize="15"
+             Foreground="#FFB9C0C8">
+      <views1:JoinsGridView x:Name="JoinsGrid"
+                            BorderThickness="1"
+                            BorderBrush="DimGray"
+                            DataContext="{ CompiledBinding JoinsGrid }" />
+    </TabItem>
+    <TabItem Header="Where"
+             FontFamily="Inter, Segoe UI, Arial"
+             FontWeight="Bold"
+             FontSize="15"
+             Foreground="#FFB9C0C8">
+
+      <views1:ConditionsGridView x:Name="ConditionsGrid"
+                                 BorderThickness="1"
+                                 BorderBrush="DimGray"
+                                 DataContext="{ CompiledBinding ConditionsGrid }" />
+    </TabItem>
+    <TabItem Header="Having"
+             FontFamily="Inter, Segoe UI, Arial"
+             FontWeight="Bold"
+             FontSize="15"
+             Foreground="#FFB9C0C8">
+      <views1:ConditionsGridView x:Name="HavingsGrid"
+                                 BorderThickness="1"
+                                 BorderBrush="DimGray"
+                                 DataContext="{ CompiledBinding HavingsGrid }" />
+
+    </TabItem>
+    <TabItem Header="Sorts"
+             FontFamily="Inter, Segoe UI, Arial"
+             FontWeight="Bold"
+             FontSize="15"
+             Foreground="#FFB9C0C8">
+      <views1:SortsGridView x:Name="SortsGrid"
+                            BorderThickness="1"
+                            BorderBrush="DimGray"
+                            DataContext="{ CompiledBinding SortsGrid }" />
+
+    </TabItem>
+  </TabControl>
+
+</UserControl>

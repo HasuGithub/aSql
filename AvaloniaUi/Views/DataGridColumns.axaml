@@ -1,0 +1,118 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+  <ControlTemplate x:Key="TakeColumnControlTemplate" TargetType="ContentControl">
+    <CheckBox IsChecked="{Binding Tag, RelativeSource={RelativeSource AncestorType=ContentControl}, Mode=TwoWay}"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Center">
+      <CheckBox.Template>
+        <ControlTemplate>
+          <Border Name="CustomCheckBoxBorder"
+                  Width="18"
+                  Height="18"
+                  CornerRadius="4"
+                  BorderThickness="1"
+                  BorderBrush="#555555"
+                  Background="#333333">
+            <Path Name="CheckMark"
+                  Data="M 0,3.5 L 2.5,6 L 7,1"
+                  Stroke="White"
+                  StrokeThickness="2"
+                  StrokeLineCap="Round"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  IsVisible="False" />
+          </Border>
+        </ControlTemplate>
+      </CheckBox.Template>
+      <CheckBox.Styles>
+        <Style Selector="CheckBox:checked /template/ Border#CustomCheckBoxBorder">
+          <Setter Property="Background" Value="DarkMagenta" />
+          <Setter Property="BorderBrush" Value="DarkMagenta" />
+        </Style>
+        <Style Selector="CheckBox:checked /template/ Path#CheckMark">
+          <Setter Property="IsVisible" Value="True" />
+        </Style>
+        <Style Selector="CheckBox:unchecked /template/ Path#CheckMark">
+          <Setter Property="IsVisible" Value="False" />
+        </Style>
+        <Style Selector="CheckBox:checked:pointerover /template/ Border#CustomCheckBoxBorder">
+          <Setter Property="Background" Value="DarkMagenta" />
+        </Style>
+        <Style Selector="CheckBox:pointerover /template/ Border#CustomCheckBoxBorder">
+          <Setter Property="Background" Value="#444444" />
+        </Style>
+      </CheckBox.Styles>
+    </CheckBox>
+  </ControlTemplate>
+
+  <DataTemplate x:Key="DeleteColumnTemplate" x:CompileBindings="False">
+    <Grid VerticalAlignment="Center"
+          HorizontalAlignment="Center"
+          MinHeight="28"
+          MinWidth="28"
+          Background="Transparent">
+
+      <Button Command="{Binding $parent[UserControl].DataContext.DeleteCommand}"
+              ToolTip.Tip="Eintrag löschen"
+              Width="26"
+              Height="26"
+              Padding="0"
+              Cursor="Hand"
+              Focusable="False">
+
+        <Button.Template>
+          <ControlTemplate>
+            <Border Name="ButtonBackground"
+                    Background="Transparent"
+                    CornerRadius="13"
+                    IsHitTestVisible="True">
+
+              <!-- WICHTIG: Fill statt Stroke nutzen, da die Form asymmetrisch gezeichnet ist -->
+              <Path
+                Data="M 2.5,4 C 3,4.5 4,6.5 7.5,10 C 9.5,12 12,13.5 13.5,14 C 14,13.5 12,11.5 9,8 C 6.5,5 4,3 3,2.5 C 2.8,2.5 2.6,3 2.5,4 Z M 13.5,2.5 C 13,3 11,5.5 8,8.5 C 6,10.5 4,12.5 2.5,13.5 C 3,14 5,12.5 7.5,10 C 10.5,7 13,4 14,3 C 14,2.8 13.7,2.6 13.5,2.5 Z"
+                Fill="DarkMagenta"
+                Width="14"
+                Height="14"
+                Stretch="Uniform"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                IsHitTestVisible="False" />
+            </Border>
+          </ControlTemplate>
+        </Button.Template>
+
+        <Button.Styles>
+          <Style Selector="Button:pointerover /template/ Border#ButtonBackground">
+            <Setter Property="Background" Value="Magenta" />
+            <Setter Property="Opacity" Value="0.1" />
+          </Style>
+          <Style Selector="Button:pressed /template/ Border#ButtonBackground">
+            <Setter Property="Background" Value="Magenta" />
+            <Setter Property="Opacity" Value="0.1" />
+          </Style>
+
+        </Button.Styles>
+      </Button>
+    </Grid>
+  </DataTemplate>
+
+  <DataTemplate x:Key="DataGridComboBoxAggregateOptionsTemplate" x:CompileBindings="False">
+    <Border Classes="DataGridComboHost">
+      <ComboBox SelectedItem="{Binding AggregateOption}"
+                ItemsSource="{Binding AggregateOptions}"
+                IsEnabled="{Binding Take}" />
+    </Border>
+  </DataTemplate>
+
+  <ControlTemplate x:Key="DataGridComboBoxControlTemplate" TargetType="ContentControl">
+    <Border Classes="DataGridComboHost">
+      <ComboBox IsEditable="True"
+                Background="#FF222428"
+                ItemsSource="{TemplateBinding Content}"
+                SelectedItem="{Binding Tag,RelativeSource={RelativeSource AncestorType=ContentControl}, Mode=TwoWay}"
+                Text="{Binding Tag, RelativeSource={RelativeSource AncestorType=ContentControl}, Mode=TwoWay}" />
+    </Border>
+  </ControlTemplate>
+
+</ResourceDictionary>

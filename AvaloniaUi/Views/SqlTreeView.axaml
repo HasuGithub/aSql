@@ -1,0 +1,93 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:viewModels="clr-namespace:aSql.ViewModels"
+             x:Class="aSql.Views.SqlTreeView"
+             x:DataType="viewModels:SqlTreeViewModel"
+             mc:Ignorable="d">
+  <UserControl.Resources>
+    <viewModels:DataTreeKindToGlyphConverter x:Key="DataTreeKindToGlyphConverter" />
+    <viewModels:DataTreeKindToBrushConverter x:Key="DataTreeKindToBrushConverter" />
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <!-- Style für den Icon-Button -->
+    <Style Selector="Button.iconBtn">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Width" Value="25" />
+      <Setter Property="Height" Value="25" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+
+      <!-- Disabled-Zustand für Hintergrund & Textfarbe des Buttons -->
+      <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#4a3b32" /> <!-- Dunkler/Grauer Braunton -->
+        <Setter Property="Foreground" Value="#887766" /> <!-- Ausgeblichenes Orange/Grau -->
+      </Style>
+
+      <!-- Disabled-Zustand explizit für das Icon (macht es blasser) -->
+      <Style Selector="^:disabled mi|MaterialIcon">
+        <Setter Property="Opacity" Value="0.5" />
+      </Style>
+    </Style>
+  </UserControl.Styles>
+
+  <Border Margin="4" BorderThickness="0">
+    <Grid RowDefinitions="Auto,*">
+      <StackPanel Grid.Row="0"
+                  Orientation="Horizontal"
+                  HorizontalAlignment="Left"
+                  Margin="0,0,0,4"
+                  Spacing="4">
+        <Button Classes="iconBtn"
+                Width="30"
+                Height="28"
+                Padding="0"
+                ToolTip.Tip="Ausgewähltes Element löschen"
+                Command="{CompiledBinding ClearCommand}">
+          <mi:MaterialIcon Kind="Broom" Width="18" Height="18" Foreground="#FFDC2626" />
+        </Button>
+      </StackPanel>
+
+      <TreeView FontFamily="Inter, Segoe UI, Arial" Grid.Row="1"
+                FontSize="11.5"
+                Foreground="#FFC7CDD4"
+                ItemsSource="{CompiledBinding Root}"
+                SelectedItem="{CompiledBinding SelectedNode, Mode=TwoWay}">
+        <TreeView.Styles>
+          <Style Selector="TreeViewItem">
+            <Setter Property="IsExpanded" Value="{ReflectionBinding IsExpanded}" />
+            <Setter Property="MinHeight" Value="18" />
+            <Setter Property="Padding" Value="0" />
+          </Style>
+          <Style Selector="TreeViewItem /template/ ToggleButton">
+            <Setter Property="Width" Value="12" />
+            <Setter Property="Height" Value="12" />
+            <Setter Property="MinWidth" Value="12" />
+            <Setter Property="MinHeight" Value="12" />
+            <Setter Property="Margin" Value="0,0,2,0" />
+          </Style>
+        </TreeView.Styles>
+
+        <TreeView.ItemTemplate>
+          <TreeDataTemplate ItemsSource="{ReflectionBinding Children}">
+            <StackPanel Orientation="Horizontal" Spacing="3" DoubleTapped="OnNodeDoubleTapped">
+              <Border Background="{ReflectionBinding Converter={StaticResource DataTreeKindToBrushConverter}}"
+                      CornerRadius="3"
+                      Padding="2,0"
+                      Margin="0,0,3,0">
+                <TextBlock Text="{ReflectionBinding Converter={StaticResource DataTreeKindToGlyphConverter}}"
+                           FontSize="10.5"
+                           FontWeight="Bold"
+                           Foreground="White" />
+              </Border>
+              <TextBlock Text="{ReflectionBinding Name}" Foreground="#FFC7CDD4" />
+            </StackPanel>
+          </TreeDataTemplate>
+        </TreeView.ItemTemplate>
+      </TreeView>
+    </Grid>
+  </Border>
+</UserControl>

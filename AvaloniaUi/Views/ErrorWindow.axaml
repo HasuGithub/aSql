@@ -1,0 +1,36 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="aSql.Views.ErrorWindow"
+        Title="Unerwarteter Fehler"
+        Width="500" Height="350"
+        WindowStartupLocation="CenterOwner"
+        CanResize="True">
+
+  <Grid RowDefinitions="Auto, *, Auto" Margin="20">
+    <!-- Header -->
+    <StackPanel Grid.Row="0" Orientation="Horizontal" Spacing="15" Margin="0,0,0,15">
+      <TextBlock Text="⚠️" FontSize="32" VerticalAlignment="Center" />
+      <StackPanel VerticalAlignment="Center">
+        <TextBlock Text="Oups! Das durfte nicht passiern" FontWeight="Bold" FontSize="16" />
+        <TextBlock x:Name="ErrorMessageText" TextWrapping="Wrap" Margin="0,5,0,0" Foreground="Gray" />
+      </StackPanel>
+    </StackPanel>
+
+    <!-- Details / Stacktrace (Scrollbar) -->
+    <TextBox Grid.Row="1" x:Name="StackTraceText" BorderBrush="DarkMagenta"
+             IsReadOnly="True"
+             TextWrapping="Wrap"
+             FontFamily="Consolas,Monospace"
+             FontSize="12"
+             Background="#1E1E1E"
+             Foreground="#D4D4D4" />
+
+    <!-- Button -->
+    <Button Grid.Row="2" Content="Anwendung beenden"
+            HorizontalAlignment="Right"
+            Margin="0,15,0,0"
+            Width="180"
+            HorizontalContentAlignment="Center"
+            Click="CloseButton_Click" />
+  </Grid>
+</Window>

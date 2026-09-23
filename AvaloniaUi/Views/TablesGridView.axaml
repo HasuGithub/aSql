@@ -1,0 +1,126 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:viewModels="clr-namespace:aSql.ViewModels"
+             x:Class="aSql.Views.TablesGridView"
+             x:DataType="viewModels:TablesGridViewModel"
+             Background="#FF26282C">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Views/DataGridColumns.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <!-- Style für den Icon-Button -->
+    <Style Selector="Button.iconBtn">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Width" Value="25" />
+      <Setter Property="Height" Value="25" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+
+      <!-- Disabled-Zustand für Hintergrund & Textfarbe des Buttons -->
+      <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#4a3b32" /> <!-- Dunkler/Grauer Braunton -->
+        <Setter Property="Foreground" Value="#887766" /> <!-- Ausgeblichenes Orange/Grau -->
+      </Style>
+
+      <!-- Disabled-Zustand explizit für das Icon (macht es blasser) -->
+      <Style Selector="^:disabled avalonia|MaterialIcon">
+        <Setter Property="Opacity" Value="0.5" />
+      </Style>
+    </Style>
+  </UserControl.Styles>
+
+  <Border Margin="1" BorderThickness="0">
+    <Grid RowDefinitions="*,Auto">
+
+      <DataGrid Grid.Row="0"
+                x:Name="TablesGrid"
+                Margin="0,0,0,2"
+                AutoGenerateColumns="False"
+                IsReadOnly="False"
+                Background="#FF222428"
+                FontSize="13"
+                GridLinesVisibility="All"
+                CanUserResizeColumns="True"
+                MinHeight="100"
+                ItemsSource="{CompiledBinding TableRows}">
+        <DataGrid.Styles>
+          <Style Selector="DataGridColumnHeader">
+            <Setter Property="Template">
+              <ControlTemplate>
+                <Grid ColumnDefinitions="*,Auto">
+                  <ContentPresenter Grid.Column="0"
+                                    Content="{TemplateBinding Content}"
+                                    ContentTemplate="{TemplateBinding ContentTemplate}"
+                                    HorizontalAlignment="Stretch"
+                                    VerticalAlignment="Stretch" Height="19"
+                                    BorderBrush="LightSlateGray" />
+
+                  <Rectangle Grid.Column="1"
+                             Name="VerticalSeparator"
+                             Width="1"
+                             Fill="SlateGray" />
+                </Grid>
+              </ControlTemplate>
+            </Setter>
+            <Setter Property="MaxHeight" Value="19" />
+            <Setter Property="MinHeight" Value="19" />
+            <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+            <Setter Property="FontSize" Value="13.5" />
+            <Setter Property="Foreground" Value="#FFC7CDD4" />
+            <Setter Property="Background" Value="#FF222428" />
+
+          </Style>
+          <Style Selector="DataGridColumnHeader /template/ ContentPresenter#PART_ContentPresenter">
+            <Setter Property="Margin" Value="0" />
+            <Setter Property="HorizontalAlignment" Value="Stretch" />
+            <Setter Property="VerticalAlignment" Value="Stretch" />
+            <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+          </Style>
+          <Style Selector="DataGridRow">
+            <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+            <Setter Property="Foreground" Value="#FFC7CDD4" />
+            <Setter Property="Background" Value="#FF222428" />
+            <Setter Property="BorderBrush" Value="#FFC7CDD4" />
+          </Style>
+          <Style Selector="DataGridCell">
+            <Setter Property="MaxHeight" Value="23" />
+            <Setter Property="MinHeight" Value="23" />
+            <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+            <Setter Property="FontSize" Value="13.5" />
+            <Setter Property="Foreground" Value="#FFC7CDD4" />
+            <Setter Property="Background" Value="#FF222428" />
+            <Setter Property="BorderBrush" Value="LightSlateGray" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="Padding" Value="3" />
+          </Style>
+        </DataGrid.Styles>
+        <DataGrid.Columns>
+          <DataGridTextColumn Width="195" IsReadOnly="True" Binding="{CompiledBinding TableName}">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="Table" TextAlignment="Center" />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+          <DataGridTextColumn Width="165" Binding="{CompiledBinding TableAlias, UpdateSourceTrigger=LostFocus}">
+            <DataGridTextColumn.Header>
+              <TextBlock Text="Alias" TextAlignment="Center" />
+            </DataGridTextColumn.Header>
+          </DataGridTextColumn>
+
+        </DataGrid.Columns>
+
+      </DataGrid>
+
+    </Grid>
+  </Border>
+</UserControl>

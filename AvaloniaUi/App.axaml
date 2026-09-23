@@ -1,0 +1,20 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:fluent="clr-namespace:Avalonia.Themes.Fluent;assembly=Avalonia.Themes.Fluent"
+             xmlns:sty="using:FluentAvalonia.Styling"
+             x:Class="aSql.App"
+             RequestedThemeVariant="Dark">
+  <Application.Styles>
+    <!-- Das FluentAvalonia Theme hinzufügen -->
+    <sty:FluentAvaloniaTheme />
+    <!-- Use default Fluent theme; no Mode property needed for Avalonia 11 -->
+    <fluent:FluentTheme />
+    <!-- Include default theme for DataGrid so it renders correctly -->
+    <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+    <!-- Include AvaloniaEdit control styles so the editor content is rendered -->
+    <StyleInclude Source="avares://AvaloniaEdit/Themes/Fluent/AvaloniaEdit.xaml" />
+    <!-- Material icons styles (required so MaterialIcon controls render glyphs) -->
+    <StyleInclude Source="avares://Material.Icons.Avalonia/MaterialIconStyles.axaml" />
+    <StyleInclude Source="/Views/DataGridColumnsStyles.axaml" />
+  </Application.Styles>
+</Application>

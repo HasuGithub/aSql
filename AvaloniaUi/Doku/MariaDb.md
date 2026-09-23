@@ -1,0 +1,1 @@
+﻿# Port           : 3307  (bei mir war 3306 belegt, was sonst der Standard bei MariaDb ist)

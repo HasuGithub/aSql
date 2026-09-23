@@ -1,0 +1,58 @@
+﻿<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:aSql.ViewModels"
+             x:Class="aSql.Views.DbTreeView"
+             x:DataType="viewModels:DbTreeViewModel"
+             mc:Ignorable="d">
+  <UserControl.Resources>
+    <viewModels:DataTreeKindToGlyphConverter x:Key="DataTreeKindToGlyphConverter" />
+    <viewModels:DataTreeKindToBrushConverter x:Key="DataTreeKindToBrushConverter" />
+  </UserControl.Resources>
+
+  <Border BorderBrush="Gray" BorderThickness="0,0,1,0" Padding="4">
+    <TreeView FontFamily="Inter, Segoe UI, Arial" x:Name="DataTree"
+              FontSize="11.5"
+              Foreground="#FFC7CDD4"
+              ItemsSource="{CompiledBinding Roots}"
+              KeyDown="DataTree_KeyDown">
+      <TreeView.Styles>
+        <Style Selector="TreeViewItem">
+          <Setter Property="IsExpanded" Value="{ReflectionBinding IsExpanded}" />
+          <Setter Property="MinHeight" Value="18" />
+          <Setter Property="Padding" Value="0" />
+        </Style>
+        <Style Selector="TreeViewItem /template/ ToggleButton">
+          <Setter Property="Width" Value="12" />
+          <Setter Property="Height" Value="12" />
+          <Setter Property="MinWidth" Value="12" />
+          <Setter Property="MinHeight" Value="12" />
+          <Setter Property="Margin" Value="0,0,2,0" />
+        </Style>
+      </TreeView.Styles>
+
+      <TreeView.ItemTemplate>
+        <TreeDataTemplate ItemsSource="{ReflectionBinding Children}">
+          <StackPanel Orientation="Horizontal"
+                      Spacing="3"
+                      Background="Transparent"
+                      HorizontalAlignment="Stretch"
+                      ToolTip.Tip="{ReflectionBinding ToolTipText}"
+                      DoubleTapped="OnNodeDoubleTapped">
+            <Border Background="{ReflectionBinding Converter={StaticResource DataTreeKindToBrushConverter}}"
+                    CornerRadius="3"
+                    Padding="2,0"
+                    Margin="0,0,3,0">
+              <TextBlock Text="{ReflectionBinding Converter={StaticResource DataTreeKindToGlyphConverter}}"
+                         FontSize="10.5"
+                         FontWeight="Bold"
+                         Foreground="White" />
+            </Border>
+            <TextBlock Text="{ReflectionBinding Name}" Foreground="#FFC7CDD4" />
+          </StackPanel>
+        </TreeDataTemplate>
+      </TreeView.ItemTemplate>
+    </TreeView>
+  </Border>
+</UserControl>

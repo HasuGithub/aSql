@@ -1,0 +1,219 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="clr-namespace:aSql.ViewModels"
+        xmlns:models="clr-namespace:aSql.Models"
+        x:Class="aSql.Views.ConnectWindow"
+        x:DataType="vm:ConnectViewModel"
+        mc:Ignorable="d"
+        Width="480"
+        SizeToContent="Height"
+        MinHeight="400"
+        WindowStartupLocation="CenterScreen"
+        CanResize="False"
+        Title="Verbinden"
+        Background="#FF26282C"
+        ExtendClientAreaToDecorationsHint="True"
+        WindowDecorations="BorderOnly">
+
+  <Window.KeyBindings>
+    <KeyBinding Gesture="Enter" Command="{CompiledBinding ConnectCommand}" />
+    <KeyBinding Gesture="Escape" Command="{CompiledBinding CancelCommand}" />
+  </Window.KeyBindings>
+
+  <Grid RowDefinitions="Auto,199,12,Auto,Auto,Auto"
+        Margin="12,12,12,12"
+        Background="#FF26282C">
+
+    <!-- ── Letzte Verbindungen ──────────────────────────────────────────── -->
+    <TextBlock Grid.Row="0"
+               Text="Letzte Verbindungen"
+               Foreground="Magenta"
+               FontWeight="Bold"
+               Margin="0,0,0,4" />
+
+    <ListBox Grid.Row="1"
+             ItemsSource="{CompiledBinding RecentConnections}"
+             SelectedItem="{CompiledBinding SelectedConnection, Mode=TwoWay}"
+             BorderThickness="1"
+             BorderBrush="DarkMagenta"
+             CornerRadius="4"
+             Background="#FF26282C">
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="models:DbConnectionEntry">
+          <StackPanel Orientation="Horizontal" Spacing="10" Height="17" Margin="1,0,4,0">
+            <TextBlock Text="{CompiledBinding Alias}"
+                       FontWeight="SemiBold"
+                       VerticalAlignment="Center" />
+            <TextBlock Text="{CompiledBinding ServerName}"
+                       Foreground="{DynamicResource SystemBaseMediumColor}"
+                       VerticalAlignment="Center" />
+            <TextBlock Text="{CompiledBinding DatabaseName}"
+                       Foreground="{DynamicResource SystemBaseMediumColor}"
+                       VerticalAlignment="Center" />
+          </StackPanel>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+
+    <!-- ── Verbindungseigenschaften ─────────────────────────────────────── -->
+    <Border Grid.Row="3"
+            BorderBrush="Magenta"
+            BorderThickness="0,0,0,1"
+            Margin="0,0,0,8">
+      <TextBlock Text="Verbindungseigenschaften"
+                 Foreground="Magenta"
+                 FontWeight="Bold"
+                 Margin="0,0,0,4" />
+    </Border>
+
+    <!-- ── Formular ──────────────────────────────────────────────────────── -->
+    <Grid Grid.Row="4"
+          ColumnDefinitions="135,*"
+          RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto,Auto">
+
+      <!-- Alias -->
+      <TextBlock Grid.Row="0" Grid.Column="0"
+                 Text="Alias"
+                 VerticalAlignment="Center"
+                 Margin="0,0,8,6" />
+      <TextBox Grid.Row="0" Grid.Column="1"
+               Text="{CompiledBinding ConnectionAlias, Mode=TwoWay}"
+               PlaceholderText="z. B. Chinook-Dev"
+               Margin="0,0,0,6" />
+
+      <!-- DB-Provider -->
+      <TextBlock Grid.Row="1" Grid.Column="0"
+                 Text="DB-Provider"
+                 VerticalAlignment="Center"
+                 Margin="0,0,8,6" />
+      <ComboBox Grid.Row="1" Grid.Column="1"
+                ItemsSource="{CompiledBinding AvailableProviders}"
+                SelectedItem="{CompiledBinding SelectedProvider, Mode=TwoWay}"
+                HorizontalAlignment="Stretch"
+                Margin="0,0,0,6" />
+
+      <!-- Servername -->
+      <TextBlock Grid.Row="2" Grid.Column="0"
+                 Text="Servername"
+                 VerticalAlignment="Center"
+                 Margin="0,0,8,6" />
+      <TextBox Grid.Row="2" Grid.Column="1"
+               Text="{CompiledBinding ServerName, Mode=TwoWay}"
+               PlaceholderText="z. B. HASIBABY oder localhost"
+               Margin="0,0,0,6" />
+
+      <!-- Port -->
+      <TextBlock Grid.Row="3" Grid.Column="0"
+                 Text="Port"
+                 VerticalAlignment="Center"
+                 IsVisible="{CompiledBinding IsPortVisible, Mode=TwoWay}"
+                 Margin="0,0,8,6" />
+      <TextBox Grid.Row="3" Grid.Column="1"
+               Text="{CompiledBinding Port, Mode=TwoWay}"
+               IsVisible="{CompiledBinding IsPortVisible, Mode=TwoWay}"
+               PlaceholderText="3307"
+               Margin="0,0,0,6" />
+
+      <!-- Authentifizierung -->
+      <TextBlock Grid.Row="4" Grid.Column="0"
+                 Text="Authentifizierung"
+                 VerticalAlignment="Center"
+                 Margin="0,0,8,6"
+                 IsVisible="{CompiledBinding IsAuthTypeVisible}" />
+      <ComboBox Grid.Row="4" Grid.Column="1"
+                ItemsSource="{CompiledBinding AvailableAuthTypes}"
+                SelectedItem="{CompiledBinding SelectedAuthType, Mode=TwoWay}"
+                HorizontalAlignment="Stretch"
+                Margin="0,0,0,6"
+                IsVisible="{CompiledBinding IsAuthTypeVisible}" />
+
+      <!-- Benutzername -->
+      <TextBlock Grid.Row="5" Grid.Column="0"
+                 Text="Benutzername"
+                 VerticalAlignment="Center"
+                 Margin="0,0,8,6" />
+      <TextBox Grid.Row="5" Grid.Column="1"
+               Text="{CompiledBinding UserName, Mode=TwoWay}"
+               Margin="0,0,0,6" />
+
+      <!-- Kennwort -->
+      <TextBlock Grid.Row="6" Grid.Column="0"
+                 Text="Kennwort"
+                 VerticalAlignment="Center"
+                 Margin="0,0,8,6" />
+      <TextBox Grid.Row="6" Grid.Column="1"
+               PasswordChar="●"
+               Text="{CompiledBinding Password, Mode=TwoWay}"
+               Margin="0,0,0,4" />
+
+      <!-- Kennwort speichern -->
+      <CheckBox Grid.Row="7" Grid.Column="1"
+                IsChecked="{CompiledBinding SavePassword, Mode=TwoWay}"
+                Content="Kennwort speichern"
+                Margin="0,0,0,6" />
+
+      <!-- Datenbankname -->
+      <TextBlock Grid.Row="8" Grid.Column="0"
+                 Text="Datenbankname"
+                 VerticalAlignment="Center"
+                 Margin="0,0,8,6" />
+      <TextBox Grid.Row="8" Grid.Column="1"
+               Text="{CompiledBinding DatabaseName, Mode=TwoWay}"
+               Margin="0,0,0,6" />
+
+      <!-- Verschlüsseln -->
+      <TextBlock Grid.Row="9" Grid.Column="0"
+                 Text="Verschlüsseln"
+                 VerticalAlignment="Center"
+                 Margin="0,0,8,6"
+                 IsVisible="{CompiledBinding IsAuthTypeVisible}" />
+      <CheckBox Grid.Row="9" Grid.Column="1"
+                IsChecked="{CompiledBinding Encrypt, Mode=TwoWay}"
+                Margin="0,0,0,6"
+                IsVisible="{CompiledBinding IsAuthTypeVisible}" />
+
+      <!-- Serverzertifikat vertrauen -->
+      <CheckBox Grid.Row="10" Grid.Column="1"
+                IsChecked="{CompiledBinding TrustServerCertificate, Mode=TwoWay}"
+                Content="Serverzertifikat vertrauen"
+                Margin="0,0,0,6"
+                IsVisible="{CompiledBinding IsAuthTypeVisible}" />
+    </Grid>
+
+    <!-- ── Status + Buttons ──────────────────────────────────────────────── -->
+    <Grid Grid.Row="5"
+          RowDefinitions="Auto,Auto"
+          Margin="0,8,0,0">
+
+      <TextBox Grid.Row="0"
+                 IsReadOnly="True"
+                 Text="{CompiledBinding StatusMessage}"
+                 TextWrapping="Wrap"
+                 Margin="0,0,0,8"
+                 Foreground="OrangeRed"
+                 IsVisible="{CompiledBinding StatusMessage, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+
+      <Grid Grid.Row="1"
+            ColumnDefinitions="Auto,*,Auto,8,Auto">
+        <Button Grid.Column="0"
+                Content="Zurücksetzen"
+                Command="{CompiledBinding ResetCommand}"
+                MinWidth="88" />
+        <Button Grid.Column="2"
+                Content="Verbinden"
+                Command="{CompiledBinding ConnectCommand}"
+                IsEnabled="{CompiledBinding CanConnect}"
+                IsDefault="True"
+                MinWidth="88" />
+        <Button Grid.Column="4"
+                Content="Abbrechen"
+                Command="{CompiledBinding CancelCommand}"
+                IsCancel="True"
+                MinWidth="88" />
+      </Grid>
+    </Grid>
+
+  </Grid>
+</Window>

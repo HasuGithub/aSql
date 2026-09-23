@@ -1,0 +1,32 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://microsoft.com">
+
+  <!-- Style für die umschließende Border -->
+  <Style Selector="Border.DataGridComboHost">
+    <Setter Property="CornerRadius" Value="1" />
+    <Setter Property="BorderThickness" Value="1" />
+    <Setter Property="BorderBrush" Value="DarkMagenta" />
+    <Setter Property="Background" Value="#333333" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+    <Setter Property="ClipToBounds" Value="True" />
+  </Style>
+
+  <!-- Basis-Style für die ComboBox darin -->
+  <Style Selector="Border.DataGridComboHost > ComboBox">
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+    <Setter Property="VerticalAlignment" Value="Stretch" />
+  </Style>
+
+  <!-- Fixes gegen Fokus- und Hover-Rahmen -->
+  <Style Selector="Border.DataGridComboHost > ComboBox /template/ Border#Background">
+    <Setter Property="BorderThickness" Value="0" />
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+  <Style Selector="Border.DataGridComboHost > ComboBox:pointerover /template/ Border#Background">
+    <Setter Property="Background" Value="Transparent" />
+  </Style>
+
+</Styles>

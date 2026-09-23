@@ -1,0 +1,187 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:mi="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             xmlns:viewModels="clr-namespace:aSql.ViewModels"
+             x:Class="aSql.Views.ResultsGridView"
+             x:DataType="viewModels:SqlEditorViewModel"
+             mc:Ignorable="d">
+
+  <UserControl.Resources>
+  </UserControl.Resources>
+
+  <Border Margin="4" BorderThickness="0">
+    <Grid RowDefinitions="Auto,*,Auto">
+      <Grid Grid.Row="0" ColumnDefinitions="*,Auto" Margin="4">
+        <StackPanel Grid.Column="0"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Left"
+                    Spacing="4">
+          <ToggleButton Width="30"
+                        Height="28"
+                        Padding="0"
+                        ToolTip.Tip="Automatische Ausführung jede Sekunde ein/aus"
+                        IsChecked="{CompiledBinding AutoExecuteEnabled, Mode=TwoWay}">
+            <mi:MaterialIcon Kind="Repeat" Width="16" Height="16" Foreground="DodgerBlue" />
+          </ToggleButton>
+
+          <Button Width="30"
+                  Height="28"
+                  Padding="0"
+                  ToolTip.Tip="SQL-Syntax prüfen"
+                  Command="{CompiledBinding SqlCheckCommand}"
+                  IsEnabled="{CompiledBinding CanExecuteSql}">
+            <mi:MaterialIcon Kind="CheckCircleOutline" Width="16" Height="16" Foreground="Gold" />
+          </Button>
+
+          <Button Width="30"
+                  Height="28"
+                  Padding="0"
+                  ToolTip.Tip="SQL ausführen (F5)"
+                  Command="{CompiledBinding ExecuteCommand}"
+                  HotKey="F5"
+                  IsEnabled="{CompiledBinding CanExecuteSql}">
+            <mi:MaterialIcon Kind="Play" Width="16" Height="16" Foreground="LimeGreen" />
+          </Button>
+
+          <Button Width="30"
+                  Height="28"
+                  Padding="0"
+                  ToolTip.Tip="Ladevorgang abbrechen"
+                  Command="{CompiledBinding CancelLoadCommand}"
+                  IsVisible="{CompiledBinding IsExecuting}">
+            <mi:MaterialIcon Kind="StopCircleOutline" Width="16" Height="16" Foreground="OrangeRed" />
+          </Button>
+        </StackPanel>
+
+        <Button Grid.Column="1"
+                Width="30"
+                Height="28"
+                Padding="0"
+                ToolTip.Tip="Text-Standardeinstellungen restaurieren"
+                Click="StandardSettingsRestoreButton_OnClick">
+          <mi:MaterialIcon Kind="Restore" Width="16" Height="16" />
+        </Button>
+      </Grid>
+
+      <DataGrid Grid.Row="1"
+                x:Name="ResultsGrid"
+                Margin="0,0,0,2"
+                AutoGenerateColumns="False"
+                IsReadOnly="True"
+                Background="#FF222428"
+                FontSize="13"
+                GridLinesVisibility="All"
+                CanUserResizeColumns="True"
+                MinHeight="100"
+                SelectionMode="Single"
+                ClipboardCopyMode="None"
+                KeyDown="ResultsGrid_OnKeyDown"
+                ItemsSource="{CompiledBinding ResultsGrid.Rows}">
+        <DataGrid.Styles>
+          <Style Selector="DataGridColumnHeader">
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+            <Setter Property="Foreground" Value="#FFB9C0C8" />
+            <Setter Property="Background" Value="#FF2A2D32" />
+            <Setter Property="Padding" Value="6,2" />
+            <Setter Property="MinHeight" Value="24" />
+          </Style>
+          <Style Selector="DataGridRow">
+            <Setter Property="FontSize"
+                    Value="{Binding FontSize, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}" />
+            <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+            <Setter Property="Foreground" Value="#FFC7CDD4" />
+          </Style>
+          <Style Selector="DataGridCell">
+            <Setter Property="FontSize"
+                    Value="{Binding FontSize, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}" />
+            <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+            <Setter Property="Foreground" Value="#FFC7CDD4" />
+          </Style>
+        </DataGrid.Styles>
+      </DataGrid>
+
+      <Border x:Name="SumBorder" Grid.Row="2"
+              Margin="0"
+              Padding="6,1"
+              BorderThickness="0"
+              Background="#FF222428">
+        <Grid ColumnDefinitions="Auto,*,Auto">
+          <StackPanel Grid.Column="0"
+                      Orientation="Horizontal"
+                      VerticalAlignment="Center"
+                      Spacing="4">
+            <Border Background="#FF27446B"
+                    CornerRadius="3"
+                    Padding="6,1">
+              <TextBlock VerticalAlignment="Center"
+                         FontFamily="Inter, Segoe UI, Arial"
+                         FontSize="10.5"
+                         Foreground="#FFD7DEE8"
+                         FontWeight="SemiBold"
+                         Text="{CompiledBinding ResultsGrid.Rows.Count}" />
+            </Border>
+
+            <TextBlock VerticalAlignment="Center"
+                       FontFamily="Inter, Segoe UI, Arial"
+                       FontSize="10.5"
+                       Foreground="#FFB9C0C8"
+                       Text="Zeilen im Grid" />
+          </StackPanel>
+
+          <StackPanel Grid.Column="2"
+                      Orientation="Horizontal"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"
+                      Spacing="4"
+                      IsVisible="{CompiledBinding UseTopEnabled}">
+            <TextBlock VerticalAlignment="Center"
+                       FontFamily="Inter, Segoe UI, Arial"
+                       FontSize="10.5"
+                       Foreground="#FF8FA7BF"
+                       Text="TOP" />
+
+            <Button Width="18"
+                    Height="18"
+                    Padding="0"
+                    BorderBrush="Transparent"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    ToolTip.Tip="Max-Zeilen verringern"
+                    Command="{CompiledBinding DecreaseMaxDisplayedRowsCommand}">
+              <mi:MaterialIcon Kind="ChevronLeft" Width="12" Height="12" Foreground="#FF8FA7BF" />
+            </Button>
+
+            <Border MinWidth="52"
+                    Height="22"
+                    VerticalAlignment="Center"
+                    BorderBrush="#FF6D86A2"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Padding="6,0">
+              <TextBlock VerticalAlignment="Center"
+                         HorizontalAlignment="Center"
+                         FontFamily="Inter, Segoe UI, Arial"
+                         FontSize="10.5"
+                         Text="{CompiledBinding MaxDisplayedRowsDisplayText}"
+                         Foreground="#FFB9C0C8" />
+            </Border>
+
+            <Button Width="18"
+                    Height="18"
+                    Padding="0"
+                    BorderBrush="Transparent"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    ToolTip.Tip="Max-Zeilen erhöhen"
+                    Command="{CompiledBinding IncreaseMaxDisplayedRowsCommand}">
+              <mi:MaterialIcon Kind="ChevronRight" Width="12" Height="12" Foreground="#FF8FA7BF" />
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Border>
+    </Grid>
+  </Border>
+</UserControl>

@@ -1,0 +1,429 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:viewModels="clr-namespace:aSql.ViewModels"
+             xmlns:avalonia="clr-namespace:Material.Icons.Avalonia;assembly=Material.Icons.Avalonia"
+             x:Class="aSql.Views.ConditionsGridView"
+             x:DataType="viewModels:ConditionsGridViewModel"
+             mc:Ignorable="d">
+
+  <UserControl.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="/Views/DataGridColumns.axaml" />
+      </ResourceDictionary.MergedDictionaries>
+    </ResourceDictionary>
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <!-- Style für den Icon-Button -->
+    <Style Selector="Button.iconBtn">
+      <Setter Property="Padding" Value="0" />
+      <Setter Property="Width" Value="25" />
+      <Setter Property="Height" Value="25" />
+      <Setter Property="HorizontalContentAlignment" Value="Center" />
+      <Setter Property="VerticalContentAlignment" Value="Center" />
+
+      <!-- Disabled-Zustand für Hintergrund & Textfarbe des Buttons -->
+      <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="#4a3b32" /> <!-- Dunkler/Grauer Braunton -->
+        <Setter Property="Foreground" Value="#887766" /> <!-- Ausgeblichenes Orange/Grau -->
+      </Style>
+
+      <!--  Disabled-Zustand explizit für das Icon (macht es blasser) -->
+      <Style Selector="^:disabled avalonia|MaterialIcon">
+        <Setter Property="Opacity" Value="0.5" />
+      </Style>
+    </Style>
+  </UserControl.Styles>
+
+  <Grid RowDefinitions="30, *, Auto">
+    <Border Grid.Row="0" IsEnabled="True" Background="#FF222428">
+      <StackPanel Orientation="Horizontal"
+                  HorizontalAlignment="Left"
+                  Spacing="4">
+
+        <Button Classes="iconBtn"
+                ToolTip.Tip="Alle Bedingungen löschen"
+                Command="{CompiledBinding ClearAllConditionsCommand}">
+          <avalonia:MaterialIcon Kind="ClearBox" Width="16" Height="16" Foreground="OrangeRed" Background="SaddleBrown" />
+        </Button>
+
+        <Button Classes="iconBtn"
+                ToolTip.Tip="Neue Zeile hinzufügen"
+                Command="{CompiledBinding AddRowCommand}">
+          <avalonia:MaterialIcon Kind="Add" Width="16" Height="16" Foreground="CornflowerBlue" />
+        </Button>
+
+        <Button Classes="iconBtn"
+                ToolTip.Tip="Ausgewählte Zeile löschen"
+                Command="{CompiledBinding DeleteSelectedRowCommand}">
+          <avalonia:MaterialIcon Kind="Minus" Width="16" Height="16" Foreground="OrangeRed" Background="SaddleBrown" />
+        </Button>
+
+        <Button Classes="iconBtn"
+                ToolTip.Tip="Bedingungen übernehmen"
+                Command="{CompiledBinding TakeOverConditionsCommand}">
+          <avalonia:MaterialIcon Kind="Check" Width="16" Height="16" Foreground="GreenYellow" />
+        </Button>
+
+      </StackPanel>
+    </Border>
+    <DataGrid x:Name="CondsGrid"
+              Grid.Row="1"
+              IsReadOnly="False"
+              Background="#FF222428"
+              AutoGenerateColumns="False"
+              HeadersVisibility="Column"
+              CanUserResizeColumns="True"
+              SelectionMode="Single"
+              GotFocus="CondsGrid_OnGotFocus"
+              ItemsSource="{CompiledBinding ConditionRows}">
+      <DataGrid.Styles>
+        <Style Selector="DataGridColumnHeader">
+          <Setter Property="Template">
+            <ControlTemplate>
+              <Grid ColumnDefinitions="*,Auto">
+                <ContentPresenter Grid.Column="0"
+                                  Content="{TemplateBinding Content}"
+                                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                                  HorizontalAlignment="Stretch"
+                                  VerticalAlignment="Stretch" Height="19"
+                                  BorderBrush="LightSlateGray" />
+
+                <Rectangle Grid.Column="1"
+                           Name="VerticalSeparator"
+                           Width="1"
+                           Fill="SlateGray" />
+              </Grid>
+            </ControlTemplate>
+          </Setter>
+          <Setter Property="MaxHeight" Value="19" />
+          <Setter Property="MinHeight" Value="19" />
+          <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+          <Setter Property="FontSize" Value="13.5" />
+          <Setter Property="Foreground" Value="#FFC7CDD4" />
+          <Setter Property="Background" Value="#FF222428" />
+
+        </Style>
+        <Style Selector="DataGridColumnHeader /template/ ContentPresenter#PART_ContentPresenter">
+          <Setter Property="Margin" Value="0" />
+          <Setter Property="HorizontalAlignment" Value="Stretch" />
+          <Setter Property="VerticalAlignment" Value="Stretch" />
+          <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+        </Style>
+        <Style Selector="DataGridRow">
+          <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+          <Setter Property="Foreground" Value="#FFC7CDD4" />
+          <Setter Property="Background" Value="#FF222428" />
+          <Setter Property="BorderBrush" Value="#FFC7CDD4" />
+        </Style>
+        <Style Selector="DataGridCell">
+          <Setter Property="MaxHeight" Value="23" />
+          <Setter Property="MinHeight" Value="23" />
+          <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
+          <Setter Property="FontSize" Value="13.5" />
+          <Setter Property="Foreground" Value="#FFC7CDD4" />
+          <Setter Property="Background" Value="#FF222428" />
+          <Setter Property="BorderBrush" Value="#FFC7CDD4" />
+          <Setter Property="BorderThickness" Value="1" />
+          <Setter Property="Padding" Value="1" />
+        </Style>
+      </DataGrid.Styles>
+      <DataGrid.Columns>
+
+        <DataGridTemplateColumn Width="130" IsReadOnly="False">
+          <DataGridTemplateColumn.Header>
+            <TextBlock Text=" ..." TextAlignment="Center" />
+          </DataGridTemplateColumn.Header>
+
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Spacing="3"
+                IsVisible="True">
+                <Button Width="18"
+                        Height="18"
+                        Padding="0"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        ToolTip.Tip="Operator auswählen"
+                        Command="{CompiledBinding DecreasePreviousOperatorCommand}">
+                  <avalonia:MaterialIcon Kind="ChevronLeft" Width="12" Height="12" Foreground="#FF8FA7BF" />
+                </Button>
+
+                <Border MinWidth="80"
+                        Height="19"
+                        VerticalAlignment="Center"
+                        BorderBrush="#FF6D86A2"
+                        BorderThickness="1"
+                        CornerRadius="3"
+                        Padding="6,0">
+                  <TextBlock VerticalAlignment="Center"
+                             HorizontalAlignment="Stretch"
+                             FontFamily="Inter, Segoe UI, Arial"
+                             FontSize="10"
+                             FontWeight="Bold"
+                             Text="{CompiledBinding OperateWithPrevious}"
+                             Foreground="CornflowerBlue" />
+                </Border>
+
+                <Button Width="18"
+                        Height="18"
+                        Padding="0"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        ToolTip.Tip="Operator auswählen"
+                        Command="{CompiledBinding IncreasePreviousOperatorCommand}">
+                  <avalonia:MaterialIcon Kind="ChevronRight" Width="12" Height="12" Foreground="#FF8FA7BF" />
+                </Button>
+              </StackPanel>
+
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Width="65" IsReadOnly="False">
+          <DataGridTemplateColumn.Header>
+            <TextBlock Text="(" TextAlignment="Center" />
+          </DataGridTemplateColumn.Header>
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Spacing="3"
+                IsVisible="True">
+                <Grid RowDefinitions="3*, 3*">
+                  <Button Width="13"
+                          Height="10"
+                          Padding="0"
+                          BorderBrush="Transparent"
+                          BorderThickness="0"
+                          Background="Transparent"
+                          ToolTip.Tip="Anzahl Klammern erhöhen"
+                          Command="{CompiledBinding IncreaseOpenParentheseCommand}">
+                    <avalonia:MaterialIcon Kind="ChevronUp" Width="12" Height="9" Foreground="#FF8FA7BF" />
+                  </Button>
+                  <Button Grid.Row="1" Width="13"
+                          Height="10"
+                          Padding="0"
+                          BorderBrush="Transparent"
+                          BorderThickness="0"
+                          Background="Transparent"
+                          ToolTip.Tip="Anzahl Klammern vermindern"
+                          Command="{CompiledBinding DecreaseOpenParentheseCommand}">
+                    <avalonia:MaterialIcon Kind="ChevronDown" Width="12" Height="9" Foreground="#FF8FA7BF" />
+                  </Button>
+
+                </Grid>
+                <Border MinWidth="45"
+                        Height="18"
+                        VerticalAlignment="Center"
+                        BorderBrush="#FF6D86A2"
+                        BorderThickness="1"
+                        CornerRadius="3"
+                        Padding="6,0">
+                  <TextBlock VerticalAlignment="Center"
+                             HorizontalAlignment="Stretch"
+                             FontFamily="Inter, Segoe UI, Arial"
+                             FontSize="12"
+                             FontWeight="Bold"
+                             ToolTip.Tip="{CompiledBinding OpenParentheseToolTip}"
+                             Text="{CompiledBinding OpenParenthese}"
+                             Foreground="CornflowerBlue" />
+                </Border>
+
+              </StackPanel>
+
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Width="105"
+                                IsVisible="{Binding IsHaving}">
+          <DataGridTemplateColumn.Header>
+            <TextBlock Text="Function" TextAlignment="Center" />
+          </DataGridTemplateColumn.Header>
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <ContentControl Template="{StaticResource DataGridComboBoxControlTemplate}"
+                              Content="{CompiledBinding AggregateOptions}"
+                              Tag="{CompiledBinding AggregateOption, Mode=TwoWay}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Width="145">
+          <DataGridTemplateColumn.Header>
+            <TextBlock Text="field/value" TextAlignment="Center" />
+          </DataGridTemplateColumn.Header>
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <ContentControl Template="{StaticResource DataGridComboBoxControlTemplate}"
+                              Content="{CompiledBinding FieldList}"
+                              Tag="{CompiledBinding LeftOperand, Mode=TwoWay}"
+                              ToolTip.Tip="{CompiledBinding LeftOperand, Mode=TwoWay}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+
+        <DataGridTemplateColumn Width="117" IsReadOnly="False">
+          <DataGridTemplateColumn.Header>
+            <TextBlock Text="?" TextAlignment="Center" />
+          </DataGridTemplateColumn.Header>
+
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+
+              <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Spacing="3"
+                IsVisible="True">
+                <Button Width="18"
+                        Height="18"
+                        Padding="0"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        ToolTip.Tip="Operator auswählen"
+                        Command="{CompiledBinding DecreaseOperatorCommand}">
+                  <avalonia:MaterialIcon Kind="ChevronLeft" Width="12" Height="12" Foreground="#FF8FA7BF" />
+                </Button>
+
+                <Border MinWidth="75"
+                        Height="19"
+                        VerticalAlignment="Center"
+                        BorderBrush="#FF6D86A2"
+                        BorderThickness="1"
+                        CornerRadius="3"
+                        Padding="6,0">
+                  <TextBlock VerticalAlignment="Center"
+                             HorizontalAlignment="Stretch"
+                             FontFamily="Inter, Segoe UI, Arial"
+                             FontSize="10"
+                             FontWeight="Bold"
+                             TextAlignment="Center"
+                             Text="{CompiledBinding Operator}"
+                             Foreground="CornflowerBlue" />
+                </Border>
+
+                <Button Width="18"
+                        Height="18"
+                        Padding="0"
+                        BorderBrush="Transparent"
+                        BorderThickness="0"
+                        Background="Transparent"
+                        ToolTip.Tip="Operator auswählen"
+                        Command="{CompiledBinding IncreaseOperatorCommand}">
+                  <avalonia:MaterialIcon Kind="ChevronRight" Width="12" Height="12" Foreground="#FF8FA7BF" />
+                </Button>
+              </StackPanel>
+
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Width="145">
+          <DataGridTemplateColumn.Header>
+            <TextBlock Text="value/field" TextAlignment="Center" />
+          </DataGridTemplateColumn.Header>
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <ContentControl Template="{StaticResource DataGridComboBoxControlTemplate}"
+                              Content="{CompiledBinding FieldList}"
+                              Tag="{CompiledBinding RightOperand, Mode=TwoWay}"
+                              ToolTip.Tip="{CompiledBinding RightOperand, Mode=TwoWay}" />
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+        <DataGridTemplateColumn Width="65" IsReadOnly="False">
+          <DataGridTemplateColumn.Header>
+            <TextBlock Text=")" TextAlignment="Center" />
+          </DataGridTemplateColumn.Header>
+          <DataGridTemplateColumn.CellTemplate>
+            <DataTemplate>
+              <StackPanel
+                Orientation="Horizontal"
+                HorizontalAlignment="Left"
+                VerticalAlignment="Center"
+                Spacing="3"
+                IsVisible="True">
+                <Border MinWidth="45"
+                        Height="18"
+                        VerticalAlignment="Center"
+                        BorderBrush="#FF6D86A2"
+                        BorderThickness="1"
+                        CornerRadius="3"
+                        Padding="6,0">
+                  <TextBlock VerticalAlignment="Center"
+                             HorizontalAlignment="Stretch"
+                             FontFamily="Inter, Segoe UI, Arial"
+                             FontSize="12"
+                             FontWeight="Bold"
+                             ToolTip.Tip="{CompiledBinding CloseParentheseToolTip}"
+                             Text="{CompiledBinding CloseParenthese}"
+                             Foreground="CornflowerBlue" />
+                </Border>
+
+                <Grid RowDefinitions="3*, 3*">
+                  <Button Width="13"
+                          Height="10"
+                          Padding="0"
+                          BorderBrush="Transparent"
+                          BorderThickness="0"
+                          Background="Transparent"
+                          ToolTip.Tip="Anzahl Klammern erhöhen"
+                          Command="{CompiledBinding IncreaseCloseParentheseCommand}">
+                    <avalonia:MaterialIcon Kind="ChevronUp" Width="12" Height="9" Foreground="#FF8FA7BF" />
+                  </Button>
+                  <Button Grid.Row="1" Width="13"
+                          Height="10"
+                          Padding="0"
+                          BorderBrush="Transparent"
+                          BorderThickness="0"
+                          Background="Transparent"
+                          ToolTip.Tip="Anzahl Klammern vermindern"
+                          Command="{CompiledBinding DecreaseCloseParentheseCommand}">
+                    <avalonia:MaterialIcon Kind="ChevronDown" Width="12" Height="9" Foreground="#FF8FA7BF" />
+                  </Button>
+
+                </Grid>
+
+              </StackPanel>
+
+            </DataTemplate>
+          </DataGridTemplateColumn.CellTemplate>
+        </DataGridTemplateColumn>
+
+      </DataGrid.Columns>
+    </DataGrid>
+
+    <Border Grid.Row="2"
+            Margin="0,4,0,0"
+            Padding="6,4"
+            BorderBrush="#FF8B8B8B"
+            BorderThickness="1"
+            CornerRadius="3"
+            Background="#FF222428">
+      <TextBlock Text="{CompiledBinding CondsPreviewText}"
+                 FontFamily="Cascadia Mono, Consolas, Courier New"
+                 FontSize="10"
+                 TextWrapping="Wrap"
+                 Foreground="#FFC7CDD4" />
+    </Border>
+  </Grid>
+</UserControl>
