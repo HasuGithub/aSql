@@ -11,7 +11,7 @@ Es wurde geschrieben, um, auf Basis des Daten-Schemas einer relationalen Datenba
 - Generierung von einfachen SQL zur schnellen Analyse von RDBMS
   - auch sehr nützlich für Fachleute der Qualitätssicherung in Software-Projekten
 - Unabhängigkeit von Hersteller-spezifischen SQL-Tools für die RDBMS
-  - SQL-Server, ORACLE, MySQL und MariaDB "befragen"
+  - SQL-Server, ORACLE, MySQL und MariaDB
 - Avalonia UI als Frontend
   - Dadurch OS-Unabhängigkeit für Windows, Linux und mac OS
 - DB-Schema als Baumstruktur inkl. Spalten, Indizes und Fremdschlüsseln
