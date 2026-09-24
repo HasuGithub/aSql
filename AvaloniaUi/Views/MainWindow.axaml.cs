@@ -40,7 +40,7 @@ public partial class MainWindow : Window
       )
     };
 
-    // so könnte man dann alles schließen
+    // so könnte man dann auch alles schließen
     // this.Closed += (s, eventArgs) => newMainWindow.Close();
 
     newMainWindow.Show();
@@ -48,13 +48,11 @@ public partial class MainWindow : Window
 
   private void MinimizeButton_Click(object? sender, RoutedEventArgs e)
   {
-    // Minimiert das aktuelle Fenster
     WindowState = WindowState.Minimized;
   }
 
   private void CloseButton_Click(object? sender, RoutedEventArgs e)
   {
-    // Schließt das aktuelle Fenster 
     Close();
   }
 }

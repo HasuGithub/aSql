@@ -4,9 +4,6 @@ using System.Globalization;
 
 namespace aDataLib.Schema;
 
-/// <summary>
-///   Native MySQL db schema reader
-/// </summary>
 public sealed class MariaDbSchemaProvider : ISchemaProvider
 {
   public DatabaseSchema LoadSchema(DbConnection connection, SchemaLoadOptions options)
