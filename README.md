@@ -1,6 +1,6 @@
 # aSql
 
-******aSql ist ein bescheidenes dotNet Multi-Plattform-SQL-Lightway-Tool, mit einer Avalonia UI als Frontend.******
+******aSql ist ein dotNet Multi-Plattform-SQL-Lightway-Tool, mit einer Avalonia UI als Frontend.******
 
 <img width="1022" height="667" alt="17902711550915827384281017035089" src="https://github.com/user-attachments/assets/734e8622-47a9-4c1a-801f-8fa8c781bcac" />
 
