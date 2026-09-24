@@ -69,7 +69,7 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ## Connect zu verschiedenen RDBMS
 
-<img width="482" height="710" alt="image" src="https://github.com/user-attachments/assets/8bc1b99d-fb13-452b-b09f-02b7f144c6f9" />
+<img width="318" height="468" alt="image" src="https://github.com/user-attachments/assets/8bc1b99d-fb13-452b-b09f-02b7f144c6f9" />
 
 - Verbindungen werden automatisch gespeichert, wenn sie einmal erfolgreich geöffnet werden konnten.
 
