@@ -12,9 +12,6 @@ using ReactiveUI;
 
 namespace aSql.ViewModels;
 
-/// <summary>
-///   ViewModel for the Conditions Grid - manages the WHERE clause condition rows.
-/// </summary>
 public sealed class ConditionsGridViewModel : ViewModelBase, IRefreshable
 {
   private DatDef? _currentDatDef;
@@ -354,9 +351,6 @@ public sealed class ConditionsGridViewModel : ViewModelBase, IRefreshable
     CondsPreviewText = sb.ToString();
   }
 
-  /// <summary>
-  ///   Populates the condition rows from DatDef conditions.
-  /// </summary>
   public void SyncFromDatDef(DatDef datDef)
   {
     _currentDatDef = datDef;
@@ -398,7 +392,7 @@ public sealed class ConditionsGridViewModel : ViewModelBase, IRefreshable
     {
       _currentDatDef.CondsAdd(OpTypes.Where, string.Empty, string.Empty, string.Empty, CompTypes.Equal, string.Empty,
         string.Empty);
-      // TODO: unbedingt refaktorisieren....
+      
       for (var i = 0; i < _currentDatDef.CondsCount; i++)
       {
         var cond = _currentDatDef.Conds(i);

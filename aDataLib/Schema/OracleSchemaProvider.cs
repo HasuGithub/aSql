@@ -4,9 +4,6 @@ using System.Globalization;
 
 namespace aDataLib.Schema;
 
-/// <summary>
-///   Native ORACLE db schema reader
-/// </summary>
 public sealed class OracleSchemaProvider : ISchemaProvider
 {
   public DatabaseSchema LoadSchema(DbConnection connection, SchemaLoadOptions options)

@@ -246,10 +246,6 @@ public sealed class ConnectViewModel : ViewModelBase
 
     RecentConnections.Insert(0, entry);
 
-    // Maximal 10 Einträge behalten
-    while (RecentConnections.Count > 10)
-      RecentConnections.RemoveAt(RecentConnections.Count - 1);
-
     ConnectionStore.Save(RecentConnections);
   }
 

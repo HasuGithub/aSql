@@ -30,13 +30,11 @@ public class App : Application
 
     Dispatcher.UIThread.UnhandledExceptionFilter += (_, e) =>
     {
-      // Prevent certain exceptions from reaching UnhandledException
       if (e.Exception is TaskCanceledException) e.RequestCatch = false;
     };
 
     TaskScheduler.UnobservedTaskException += (_, e) =>
     {
-      // Prevent the exception from terminating the process
       e.SetObserved();
     };
 
