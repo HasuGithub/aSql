@@ -72,9 +72,10 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore ${{ env.Solution_Name }}
 
-    # Kompiliert die App und kopiert die ausführbare .exe mit allen DLLs in den Ausgabeordner
+    # Kompiliert NUR das Hauptprojekt als einzelne, unabhängige .exe-Datei
+    # Ersetze "DeinOrdner/DeinProjektName.csproj" durch den echten Pfad in deinem Repository!
     - name: Publish the Application
-      run: dotnet publish ${{ env.Solution_Name }} -c ${{ matrix.configuration }} -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfContained=true -o ./publish
+      run: dotnet publish AvaloniaUi/aSql.csproj -c ${{ matrix.configuration }} -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfContained=true -o ./publish
 
     # Lädt den fertigen Ordner als ZIP-Datei in deine GitHub Actions hoch
     - name: Upload build artifacts
