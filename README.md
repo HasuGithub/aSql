@@ -1,8 +1,9 @@
 # aSql
 
-******aSql ist ein bescheidenes dotNet Multi-Plattform-SQL-Lightway-Tool, mit einer Avalonia UI als Frontend.******
+******aSql ist ein dotNet Multi-Plattform-SQL-Lightway-Tool, mit einer Avalonia UI als Frontend.******
 
-<img width="1022" height="667" alt="image" src="https://github.com/user-attachments/assets/c44b399f-4d91-4c28-bdbb-c87697a7d394" />
+<img width="1022" height="667" alt="17902711550915827384281017035089" src="https://github.com/user-attachments/assets/734e8622-47a9-4c1a-801f-8fa8c781bcac" />
+
 
 Es wurde geschrieben, um, auf Basis des Daten-Schemas einer relationalen Datenbank, schnell SQL-Select-Abfragen, hauptsächlich per Klick oder/und Doppelklick zu generieren, ohne viel schreiben zu müssen...
 
@@ -69,13 +70,15 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ## Connect zu verschiedenen RDBMS
 
-<img width="318" height="468" alt="image" src="https://github.com/user-attachments/assets/8bc1b99d-fb13-452b-b09f-02b7f144c6f9" />
+<img width="482" height="710" alt="179027121529228447063452147150" src="https://github.com/user-attachments/assets/acbd2237-dae3-470f-b1dd-3a33d5206c78" />
+
 
 - Verbindungen werden automatisch gespeichert, wenn sie einmal erfolgreich geöffnet werden konnten.
 
 ### SQL-Generierung über DB-Schema
 
-<img width="1196" height="680" alt="image" src="https://github.com/user-attachments/assets/27827e13-cfab-4ae4-823e-e44f33fc21e5" />
+<img width="1196" height="680" alt="17902712455043578035427765380381" src="https://github.com/user-attachments/assets/f6fa19c2-bea6-4c4e-8ec3-f702fb3c3da4" />
+
 
 - Doppel-Klick auf eine Tabelle erzeugt ein Select für diese Tabelle und führt das Select direkt aus
   - Ein bereits vorhandenes SQL wird in diesem Fall vorher gelöscht
@@ -87,7 +90,8 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ### Foreign Keys
 
-<img width="1416" height="428" alt="image" src="https://github.com/user-attachments/assets/39337dee-2117-4751-a076-6d128cc84710" />
+<img width="1416" height="428" alt="17902712767501597376862106218338" src="https://github.com/user-attachments/assets/0948c9e5-1c23-42cb-8443-4baa11f63e13" />
+
 
 - Man sieht bei jeder Tabelle direkt, auf welche Tabellen verwiesen wird (ForeignKey) und welche anderen Tabellen auf diese Tabelle verweisen (ReferencedBy) 
 - Bei den ForeignKeys und ReferencedBy werden jeweils "Tabelle Von ---> Tabelle Nach" angezeigt
@@ -100,14 +104,16 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ### Indizes
 
-<img width="1031" height="521" alt="image" src="https://github.com/user-attachments/assets/fd6b9f20-63f2-4f87-ac48-e86638ef182d" />
+<img width="1031" height="521" alt="17902713068683520199580225185299" src="https://github.com/user-attachments/assets/0f6554ee-e4b4-43e9-ab03-1ffbb14b9a9c" />
+
 
 - Doppel-Klick auf einen Index fügt diesen als „ORDER BY" hinzu
 - Das SQL muss hierbei manuell neu ausgeführt werden
 
 ### Tabellen bearbeiten
 
-<img width="676" height="172" alt="image" src="https://github.com/user-attachments/assets/6015fc36-bbe7-4c39-8d37-a00067bca22d" />
+<img width="676" height="172" alt="17902713338342190692789303116164" src="https://github.com/user-attachments/assets/8158edde-7dea-4140-8e82-279a4619d19d" />
+
 
 - Unter dem Reiter „Tabellen" können Alias für die Tabellen eingegeben werden
   - Diese werden aber auch bereits automatisch generiert, wenn es nötig ist
@@ -115,7 +121,8 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ### Felder bearbeiten
 
-<img width="737" height="396" alt="image" src="https://github.com/user-attachments/assets/069b9fcd-1e78-4885-8714-3d62784ea97f" />
+<img width="737" height="396" alt="17902713591915491033142312759149" src="https://github.com/user-attachments/assets/a4c6627d-44f3-4b5f-a2b0-d5fc0139771f" />
+
 
 - Unter dem Reiter „Fields" können Felder ausgewählt werden
 - Die Felder können zudem für eine Gruppierung markiert werden
@@ -123,7 +130,8 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ### Joins bearbeiten
 
-<img width="527" height="193" alt="image" src="https://github.com/user-attachments/assets/072dc796-237c-4d6a-bfb2-9a54b97c6536" />
+<img width="527" height="193" alt="17902713856117180031998957994709" src="https://github.com/user-attachments/assets/e04cc067-0718-4e08-bb7f-0e71ffb2fe4c" />
+
 
 - Unter dem Reiter „Joins" kann die Art der Joins geändert werden
   - Mit der Taste „STRG" bei Klick auf einen Join Type Pfeil werden alle Joins geändert
@@ -132,7 +140,8 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ### Bedingungen
 
-<img width="737" height="294" alt="image" src="https://github.com/user-attachments/assets/096cb7b0-149f-402a-aa86-6f627de3b077" />
+<img width="737" height="294" alt="17902714131386616209953329703695" src="https://github.com/user-attachments/assets/06b7c448-5911-43bc-8855-72403acbc7a0" />
+
 
 - Unter den Reitern „Where" und „Having" können Bedingungen eingegeben werden
 - Hierbei werden je RDBMS und Datentyp des jeweiligen Feldes die korrekten Formatierungen im SQL gebildet
@@ -141,7 +150,8 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ### Sortierungen
 
-<img width="737" height="217" alt="image" src="https://github.com/user-attachments/assets/f02b7a6b-bc7d-4dc1-ac2b-46e87a57e659" />
+<img width="737" height="217" alt="17902714412065138157077757094652" src="https://github.com/user-attachments/assets/783cc547-b91e-4d66-ad38-885245738807" />
+
 
 - Unter dem Reiter „Sorts" können Sortierungen für Felder gewählt werden
 - Standardmäßig werden die Sortierungen als "ASC" (aufsteigend) generiert. Das kann hier auf "DESC" (absteigend) umgestellt werden
@@ -149,14 +159,16 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ### Protokolle und Fehlermeldungen
 
-<img width="308" height="352" alt="image" src="https://github.com/user-attachments/assets/5a56dbb0-c36d-496f-a937-baa005286100" />
+<img width="308" height="352" alt="17902714728595702691502949367917" src="https://github.com/user-attachments/assets/904779a8-ac18-4861-b2b0-09f065e1f62a" />
+
 
 - Unten links im Haupt-Dialog werden Infos zur Ausführung des SQL oder auch Fehlermeldungen angezeigt
 - Zudem gibt es Infos zur Laufzeit des SQL und zur Anzahl der zurückgegebenen Zeilen
 
 ### Ausgabe
 
-<img width="605" height="350" alt="image" src="https://github.com/user-attachments/assets/a0acfe5c-bd08-4aff-b134-a44ab7db6c90" />
+<img width="605" height="350" alt="17902714994067431319113914676913" src="https://github.com/user-attachments/assets/74cc263e-7d8a-4da2-8117-b99d89be99fa" />
+
 
 - Im Ausgabe-Bereich (unten rechts im Haupt-Dialog) können
 
@@ -169,7 +181,8 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ### Einstellungen
 
-<img width="915" height="192" alt="image" src="https://github.com/user-attachments/assets/8b63a571-6b98-4e89-a81a-dbe37950d853" />
+<img width="915" height="192" alt="17902715279545195547680479904015" src="https://github.com/user-attachments/assets/4d3d8242-c31c-4a9e-8891-24cdf27a309f" />
+
 
 In der Oberen Symbolleiste des Haupt-Dialogs gibt es (von links ausgehend) Schaltflächen für
   - Neue Instanz (Ein neuer Haupt-Dialog wird mit der aktuellen DB-Verbindung geöffnet)
@@ -182,7 +195,8 @@ In der Oberen Symbolleiste des Haupt-Dialogs gibt es (von links ausgehend) Schal
 
 ### Statusleiste
 
-<img width="541" height="27" alt="image" src="https://github.com/user-attachments/assets/42536204-ad65-4219-b6de-f0ae926fe4bf" />
+<img width="541" height="27" alt="17902715540146663662166728107414" src="https://github.com/user-attachments/assets/4c6be565-3817-4a58-8352-ac6d5405a221" />
+
 
 - In der Statuszeile (ganz unten) wird angezeigt, mit welchem RDBMS man aktuell verbunden ist
 
@@ -190,7 +204,8 @@ In der Oberen Symbolleiste des Haupt-Dialogs gibt es (von links ausgehend) Schal
 
 - Die Schriftgröße kann in den Bereichen Statusmeldungen, SQL und Ausgabebereich verändert werden, indem die Taste „STRG" gedrückt – und am Mausrad gedreht wird
   - Zurücksetzen kann man die Schriftgröße dann mit der Schaltfläche
-  - <img width="95" height="61" alt="image" src="https://github.com/user-attachments/assets/452f6f5a-d524-441d-b18c-da903a49287d" />
+  - <img width="95" height="61" alt="17902715829977305398138553842676" src="https://github.com/user-attachments/assets/9a7aa9e5-1b14-4ae6-9b63-c43f640463c4" />
+
 
 ### Speicherort für die RDBMS-Verbindungen
 
