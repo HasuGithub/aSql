@@ -60,184 +60,186 @@
   <Border Name="RootBorder" BorderBrush="DarkMagenta">
     <Grid RowDefinitions="Auto,Auto,*,Auto" ColumnDefinitions="*">
 
-      <Grid Grid.Row="1" ColumnDefinitions="*,Auto" Margin="4,0" Height="33">
-        <StackPanel Grid.Column="0"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Left"
+      <Border Grid.Row="1" Background="#FF26282C" Height="33" PointerPressed="Header_OnPointerPressed">
+        <Grid ColumnDefinitions="*,Auto" Margin="4,0" Height="33">
+          <StackPanel Grid.Column="0"
+                      Orientation="Horizontal"
+                      HorizontalAlignment="Left"
+                      VerticalAlignment="Center"
+                      Spacing="4">
+
+            <Button Width="30"
+                    Height="28"
+                    Padding="0"
+                    Click="ButtonNewInstance_OnClick"
+                    ToolTip.Tip="Neue Instanz">
+              <mi:MaterialIcon Kind="WindowOpen" Width="16" Height="16" Foreground="CornflowerBlue" />
+            </Button>
+
+            <Border Width="1" Height="22" Background="#FF8B8B8B" Margin="6,0,2,0" VerticalAlignment="Center" />
+
+
+            <Border x:Name="WithNoLockBorder"
+                    BorderBrush="Transparent"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    IsVisible="{CompiledBinding IsWithNoLockVisible}">
+              <ToggleButton x:Name="WithNoLockButton"
+                            MinWidth="36"
+                            Height="30"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
+                            ToolTip.Tip="Fügt WITH(NOLOCK) hinter FROM/JOIN-Tabellen ein"
+                            IsChecked="{CompiledBinding WithNoLock, Mode=TwoWay}">
+                <mi:MaterialIcon Kind="LockOffOutline" Width="18" Height="18" Foreground="#FF60A5FA" />
+              </ToggleButton>
+            </Border>
+
+            <Border x:Name="WithDelimiter"
+                    BorderBrush="Transparent"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    IsVisible="True">
+              <ToggleButton x:Name="WithDelimiterButton"
+                            MinWidth="36"
+                            Height="30"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
+                            ToolTip.Tip="Erzeugt SQL mit Table/ und Field-Delimiter"
+                            IsChecked="{CompiledBinding WithDelimiter, Mode=TwoWay}">
+                <mi:MaterialIcon Kind="CodeBraces" Width="18" Height="18" Foreground="#FF60A5FA" />
+              </ToggleButton>
+            </Border>
+
+            <Border x:Name="UseUpperCase"
+                    BorderBrush="Transparent"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    IsVisible="True">
+              <ToggleButton x:Name="UseUpperCaseButton"
+                            MinWidth="36"
+                            Height="30"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
+                            ToolTip.Tip="Erzeugt SQL mit Großbuchstaben"
+                            IsChecked="{CompiledBinding UseUpperCaseSql, Mode=TwoWay}">
+                <mi:MaterialIcon Kind="FormatLetterCaseUpper" Width="18" Height="18" Foreground="#FF60A5FA" />
+              </ToggleButton>
+            </Border>
+
+            <Border x:Name="UseTopBorder"
+                    BorderBrush="Transparent"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    IsVisible="{CompiledBinding IsUseTopVisible}">
+              <ToggleButton x:Name="UseTopButton"
+                            MinWidth="36"
+                            Height="30"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
+                            ToolTip.Tip="Fügt TOP(Count) hinter SELECT ein (Count = Max-Zeilen)"
+                            IsChecked="{CompiledBinding UseTopEnabled, Mode=TwoWay}">
+                <mi:MaterialIcon Kind="FormatVerticalAlignTop" Width="18" Height="18" Foreground="#FF60A5FA" />
+              </ToggleButton>
+            </Border>
+
+            <Border x:Name="UseSimpleDateBorder"
+                    BorderBrush="Transparent"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    IsVisible="{CompiledBinding IsUseTopVisible}">
+              <ToggleButton x:Name="UseSimpleDateButton"
+                            MinWidth="36"
+                            Height="30"
+                            Padding="0"
+                            Background="Transparent"
+                            BorderBrush="Transparent"
+                            BorderThickness="0"
+                            ToolTip.Tip="Nutzt ein einfaches, kurzes Datumsformat für Bedingungen"
+                            IsChecked="{CompiledBinding UseSimpleDate, Mode=TwoWay}">
+                <mi:MaterialIcon Kind="CalendarDay" Width="18" Height="18" Foreground="#FF60A5FA" />
+              </ToggleButton>
+            </Border>
+
+            <Border Width="1" Height="22" Background="#FF8B8B8B" Margin="6,0,2,0" VerticalAlignment="Center" />
+
+          </StackPanel>
+
+          <StackPanel Grid.Column="1"
+                      Orientation="Horizontal"
+                      HorizontalAlignment="Right"
+                      VerticalAlignment="Center"
+                      Margin="0,0,15,0"
+                      Spacing="6">
+            <Button Width="20"
+                    Height="20"
+                    Padding="0"
+                    BorderBrush="Transparent"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    ToolTip.Tip="Command-Timeout verringern"
+                    Command="{CompiledBinding SqlEditor.DecreaseCommandTimeoutCommand}">
+              <mi:MaterialIcon Kind="ChevronLeft" Width="14" Height="14" Foreground="#FFE0E0E0" />
+            </Button>
+
+            <Border MinWidth="56"
+                    Height="24"
                     VerticalAlignment="Center"
-                    Spacing="4">
+                    BorderBrush="#FF8B8B8B"
+                    BorderThickness="1"
+                    CornerRadius="3"
+                    Padding="8,0">
+              <TextBlock VerticalAlignment="Center"
+                         ToolTip.Tip="Aktuelles Command-Timeout für SQL-Ausführung"
+                         HorizontalAlignment="Center"
+                         Text="{CompiledBinding SqlEditor.CommandTimeoutDisplayText}"
+                         Foreground="#FFE0E0E0" />
+            </Border>
 
-          <Button Width="30"
-                  Height="28"
-                  Padding="0"
-                  Click="ButtonNewInstance_OnClick"
-                  ToolTip.Tip="Neue Instanz">
-            <mi:MaterialIcon Kind="WindowOpen" Width="16" Height="16" Foreground="CornflowerBlue" />
-          </Button>
+            <Button Width="20"
+                    Height="20"
+                    Padding="0"
+                    BorderBrush="Transparent"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    ToolTip.Tip="Command-Timeout erhöhen"
+                    Command="{CompiledBinding SqlEditor.IncreaseCommandTimeoutCommand}">
 
-          <Border Width="1" Height="22" Background="#FF8B8B8B" Margin="6,0,2,0" VerticalAlignment="Center" />
-
-
-          <Border x:Name="WithNoLockBorder"
-                  BorderBrush="Transparent"
-                  BorderThickness="1"
-                  CornerRadius="3"
-                  IsVisible="{CompiledBinding IsWithNoLockVisible}">
-            <ToggleButton x:Name="WithNoLockButton"
-                          MinWidth="36"
-                          Height="30"
-                          Padding="0"
-                          Background="Transparent"
-                          BorderBrush="Transparent"
-                          BorderThickness="0"
-                          ToolTip.Tip="Fügt WITH(NOLOCK) hinter FROM/JOIN-Tabellen ein"
-                          IsChecked="{CompiledBinding WithNoLock, Mode=TwoWay}">
-              <mi:MaterialIcon Kind="LockOffOutline" Width="18" Height="18" Foreground="#FF60A5FA" />
-            </ToggleButton>
-          </Border>
-
-          <Border x:Name="WithDelimiter"
-                  BorderBrush="Transparent"
-                  BorderThickness="1"
-                  CornerRadius="3"
-                  IsVisible="True">
-            <ToggleButton x:Name="WithDelimiterButton"
-                          MinWidth="36"
-                          Height="30"
-                          Padding="0"
-                          Background="Transparent"
-                          BorderBrush="Transparent"
-                          BorderThickness="0"
-                          ToolTip.Tip="Erzeugt SQL mit Table/ und Field-Delimiter"
-                          IsChecked="{CompiledBinding WithDelimiter, Mode=TwoWay}">
-              <mi:MaterialIcon Kind="CodeBraces" Width="18" Height="18" Foreground="#FF60A5FA" />
-            </ToggleButton>
-          </Border>
-
-          <Border x:Name="UseUpperCase"
-                  BorderBrush="Transparent"
-                  BorderThickness="1"
-                  CornerRadius="3"
-                  IsVisible="True">
-            <ToggleButton x:Name="UseUpperCaseButton"
-                          MinWidth="36"
-                          Height="30"
-                          Padding="0"
-                          Background="Transparent"
-                          BorderBrush="Transparent"
-                          BorderThickness="0"
-                          ToolTip.Tip="Erzeugt SQL mit Großbuchstaben"
-                          IsChecked="{CompiledBinding UseUpperCaseSql, Mode=TwoWay}">
-              <mi:MaterialIcon Kind="FormatLetterCaseUpper" Width="18" Height="18" Foreground="#FF60A5FA" />
-            </ToggleButton>
-          </Border>
-
-          <Border x:Name="UseTopBorder"
-                  BorderBrush="Transparent"
-                  BorderThickness="1"
-                  CornerRadius="3"
-                  IsVisible="{CompiledBinding IsUseTopVisible}">
-            <ToggleButton x:Name="UseTopButton"
-                          MinWidth="36"
-                          Height="30"
-                          Padding="0"
-                          Background="Transparent"
-                          BorderBrush="Transparent"
-                          BorderThickness="0"
-                          ToolTip.Tip="Fügt TOP(Count) hinter SELECT ein (Count = Max-Zeilen)"
-                          IsChecked="{CompiledBinding UseTopEnabled, Mode=TwoWay}">
-              <mi:MaterialIcon Kind="FormatVerticalAlignTop" Width="18" Height="18" Foreground="#FF60A5FA" />
-            </ToggleButton>
-          </Border>
-
-          <Border x:Name="UseSimpleDateBorder"
-                  BorderBrush="Transparent"
-                  BorderThickness="1"
-                  CornerRadius="3"
-                  IsVisible="{CompiledBinding IsUseTopVisible}">
-            <ToggleButton x:Name="UseSimpleDateButton"
-                          MinWidth="36"
-                          Height="30"
-                          Padding="0"
-                          Background="Transparent"
-                          BorderBrush="Transparent"
-                          BorderThickness="0"
-                          ToolTip.Tip="Nutzt ein einfaches, kurzes Datumsformat für Bedingungen"
-                          IsChecked="{CompiledBinding UseSimpleDate, Mode=TwoWay}">
-              <mi:MaterialIcon Kind="CalendarDay" Width="18" Height="18" Foreground="#FF60A5FA" />
-            </ToggleButton>
-          </Border>
-
-          <Border Width="1" Height="22" Background="#FF8B8B8B" Margin="6,0,2,0" VerticalAlignment="Center" />
-
-        </StackPanel>
-
-        <StackPanel Grid.Column="1"
-                    Orientation="Horizontal"
-                    HorizontalAlignment="Right"
-                    VerticalAlignment="Center"
-                    Margin="0,0,15,0"
-                    Spacing="6">
-          <Button Width="20"
-                  Height="20"
-                  Padding="0"
-                  BorderBrush="Transparent"
-                  BorderThickness="0"
-                  Background="Transparent"
-                  ToolTip.Tip="Command-Timeout verringern"
-                  Command="{CompiledBinding SqlEditor.DecreaseCommandTimeoutCommand}">
-            <mi:MaterialIcon Kind="ChevronLeft" Width="14" Height="14" Foreground="#FFE0E0E0" />
-          </Button>
-
-          <Border MinWidth="56"
-                  Height="24"
-                  VerticalAlignment="Center"
-                  BorderBrush="#FF8B8B8B"
-                  BorderThickness="1"
-                  CornerRadius="3"
-                  Padding="8,0">
-            <TextBlock VerticalAlignment="Center"
-                       ToolTip.Tip="Aktuelles Command-Timeout für SQL-Ausführung"
-                       HorizontalAlignment="Center"
-                       Text="{CompiledBinding SqlEditor.CommandTimeoutDisplayText}"
-                       Foreground="#FFE0E0E0" />
-          </Border>
-
-          <Button Width="20"
-                  Height="20"
-                  Padding="0"
-                  BorderBrush="Transparent"
-                  BorderThickness="0"
-                  Background="Transparent"
-                  ToolTip.Tip="Command-Timeout erhöhen"
-                  Command="{CompiledBinding SqlEditor.IncreaseCommandTimeoutCommand}">
-
-            <mi:MaterialIcon Kind="ChevronRight" Width="14" Height="14" Foreground="#FFE0E0E0" />
-          </Button>
-          <Button Click="MinimizeButton_Click"
-                  Width="20"
-                  Height="20"
-                  Padding="0"
-                  BorderBrush="Transparent"
-                  BorderThickness="0"
-                  Background="Transparent"
-                  ToolTip.Tip="Fenster minimieren"
-                  CornerRadius="0">
-            <mi:MaterialIcon Kind="Minimize" Width="14" Height="14" Foreground="Magenta" />
-          </Button>
-          <Button Click="CloseButton_Click"
-                  Width="20"
-                  Height="20"
-                  Padding="0"
-                  BorderBrush="Transparent"
-                  BorderThickness="0"
-                  Background="Transparent"
-                  ToolTip.Tip="Anwendung/Fenster schließen"
-                  CornerRadius="0">
-            <mi:MaterialIcon Kind="CloseBoxesOutline" Width="14" Height="14" Foreground="Magenta" />
-          </Button>
-        </StackPanel>
-      </Grid>
+              <mi:MaterialIcon Kind="ChevronRight" Width="14" Height="14" Foreground="#FFE0E0E0" />
+            </Button>
+            <Button Click="MinimizeButton_Click"
+                    Width="20"
+                    Height="20"
+                    Padding="0"
+                    BorderBrush="Transparent"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    ToolTip.Tip="Fenster minimieren"
+                    CornerRadius="0">
+              <mi:MaterialIcon Kind="Minimize" Width="14" Height="14" Foreground="Magenta" />
+            </Button>
+            <Button Click="CloseButton_Click"
+                    Width="20"
+                    Height="20"
+                    Padding="0"
+                    BorderBrush="Transparent"
+                    BorderThickness="0"
+                    Background="Transparent"
+                    ToolTip.Tip="Anwendung/Fenster schließen"
+                    CornerRadius="0">
+              <mi:MaterialIcon Kind="CloseBoxesOutline" Width="14" Height="14" Foreground="Magenta" />
+            </Button>
+          </StackPanel>
+        </Grid>
+      </Border>
 
       <Grid Grid.Row="2" ColumnDefinitions="317,1.5,*">
         <Grid Grid.Column="0" RowDefinitions="4*,1.5,*">
