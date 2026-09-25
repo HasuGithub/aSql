@@ -1,6 +1,7 @@
 using aSql.ViewModels;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Interactivity;
 
 namespace aSql.Views;
@@ -54,5 +55,13 @@ public partial class MainWindow : Window
   private void CloseButton_Click(object? sender, RoutedEventArgs e)
   {
     Close();
+  }
+
+  private void Header_OnPointerPressed(object? sender, PointerPressedEventArgs e)
+  {
+    if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+    {
+      this.BeginMoveDrag(e);
+    }
   }
 }
