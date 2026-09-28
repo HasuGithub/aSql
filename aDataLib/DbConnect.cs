@@ -65,7 +65,7 @@ public class DbConnect
     {
       if (_lWithDelimiter == value) return;
       _lWithDelimiter = value;
-      SwitchDbSpecifika(_lWithDelimiter);
+      SwitchDbSpecifics(_lWithDelimiter);
     }
   }
 
@@ -101,7 +101,7 @@ public class DbConnect
 
     db.ApplyOpenConnectionMetadata(dbName);
 
-    db.SwitchDbSpecifika(db._lWithDelimiter);
+    db.SwitchDbSpecifics(db._lWithDelimiter);
     return db;
   }
 
@@ -243,11 +243,11 @@ public class DbConnect
     }
 
     Connection = connection;
-    SwitchDbSpecifika(_lWithDelimiter);
+    SwitchDbSpecifics(_lWithDelimiter);
     return true;
   }
 
-  private void SwitchDbSpecifika(bool withDelimiter)
+  private void SwitchDbSpecifics(bool withDelimiter)
   {
     switch (lDbType)
     {
