@@ -867,11 +867,11 @@ public sealed class SqlEditorViewModel : ViewModelBase
     RefreshTabs();
   }
 
-  public void AddTableToDefinition(DataTreeNode node, bool addAllFields = true, bool clearTableBefore = false)
+  public void AddTableToDefinition(DataTreeNode node, bool addAllFields = true, bool clearDefBefore = false)
   {
     if (SqlDefinition == null || string.IsNullOrWhiteSpace(node.Name)) return;
 
-    if (clearTableBefore) SqlDefinition.TablesClear();
+    if (clearDefBefore) SqlDefinition.Clear();
 
     var table = SqlDefinition.TablesAdd(string.Empty, node.Name, string.Empty, node.Tag);
     if (table != null && addAllFields) table.FieldsAdd("*");
