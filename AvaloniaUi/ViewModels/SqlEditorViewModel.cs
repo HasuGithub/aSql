@@ -188,12 +188,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
 
   public string MaxDisplayedRowsDisplayText => MaxDisplayedRows.ToString();
 
-  public DataTable? Results
-  {
-    get;
-    private set => this.RaiseAndSetIfChanged(ref field, value);
-  }
-
   public ResultsGridViewModel ResultsGrid { get; } = new();
 
   public IObservable<bool> CanExecuteSql =>
@@ -511,7 +505,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
       var stopwatch = Stopwatch.StartNew();
       var executeStart = DateTime.Now;
 
-      Results = null;
       ResultsGrid.ColumnNames = [];
       ResultsGrid.SetRows([]);
 
@@ -534,7 +527,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
         executionCts.Token,
         manualCancelCts.Token);
 
-      Results = loadResult.Table;
       ResultsGrid.ColumnNames = [.. loadResult.Table.Columns.Cast<DataColumn>().Select(c => c.ColumnName)];
       ResultsGrid.SetRows(loadResult.Rows);
       this.RaisePropertyChanged(nameof(ResultsGrid.Rows));
@@ -556,7 +548,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
     }
     catch (Exception ex)
     {
-      Results = null;
       ResultsGrid.SetRows([]);
       this.RaisePropertyChanged(nameof(ResultsGrid.Rows));
       StatusMessage = "Fehler bei der SQL-Ausführung: " + ex.Message;
@@ -859,7 +850,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
   private void ClearResults()
   {
     SqlDefinition?.Clear();
-    Results = null;
     ResultsGrid.SetRows([]);
     this.RaisePropertyChanged(nameof(ResultsGrid.Rows));
     StatusMessage = string.Empty;
