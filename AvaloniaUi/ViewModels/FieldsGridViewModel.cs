@@ -104,12 +104,21 @@ public sealed class FieldsGridViewModel : ViewModelBase, IRefreshable
           var field = aktTable.Fields.First(x => x.Name == row.ColName);
           field.IsInGroupBy = row.IsGroupBy;
           field.FieldAgg = row.AggregateOption;
+          field.Alias = row.FieldAlias;
           row.MyDatDefTableField = field;
         }
       }
       else
       {
-        if (aktTable.Fields.Any(x => x.Name == row.ColName)) aktTable.FieldsDelete(row.ColName);
+        if (row.FieldAlias.Length > 0)
+        {
+          var field = aktTable.Fields.FirstOrDefault(x => x.Alias == row.FieldAlias);
+          if (field != null) aktTable.FieldsDelete(row.FieldAlias);
+        }
+        else
+        {
+          if (aktTable.Fields.Any(x => x.Name == row.ColName)) aktTable.FieldsDelete(row.ColName);
+        }
       }
 
       foreach (var field in aktTable.Fields.Where(field => field.IsInGroupBy))

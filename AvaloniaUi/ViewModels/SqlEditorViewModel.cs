@@ -527,8 +527,12 @@ public sealed class SqlEditorViewModel : ViewModelBase
         executionCts.Token,
         manualCancelCts.Token);
 
-      ResultsGrid.ColumnNames = [.. loadResult.Table.Columns.Cast<DataColumn>().Select(c => c.ColumnName)];
-      ResultsGrid.SetRows(loadResult.Rows);
+      
+      ResultsGrid.ColumnNames = SqlDefinition?.AllFields.Values.ToList();
+
+      //ResultsGrid.ColumnNames = [.. loadResult.Table.Columns.Cast<DataColumn>().Select(c => c.ColumnName)];
+
+      ResultsGrid.SetRows(loadResult.Table.DefaultView);
       this.RaisePropertyChanged(nameof(ResultsGrid.Rows));
 
       stopwatch.Stop();
@@ -598,7 +602,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
     CancellationToken manualCancellationToken)
   {
     var table = new DataTable();
-    var bufferedRows = new List<Dictionary<string, object?>>();
     var rowCount = 0;
 
     await con.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -656,10 +659,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
         var rowValues = (object[])values.Clone(); // isolate per-row values
         table.Rows.Add(rowValues);
 
-        var dict = new Dictionary<string, object?>(fieldCount);
-        for (var i = 0; i < fieldCount; i++) dict[names[i]] = rowValues[i];
-
-        bufferedRows.Add(dict);
         rowCount++;
       }
     }
@@ -669,10 +668,10 @@ public sealed class SqlEditorViewModel : ViewModelBase
         ? QueryCancellationReason.Manual
         : QueryCancellationReason.Timeout;
 
-      return new QueryLoadResult(table, bufferedRows, rowCount, limitRows, maxRows, reason);
+      return new QueryLoadResult(table, rowCount, limitRows, maxRows, reason);
     }
 
-    return new QueryLoadResult(table, bufferedRows, rowCount, limitRows, maxRows, QueryCancellationReason.None);
+    return new QueryLoadResult(table, rowCount, limitRows, maxRows, QueryCancellationReason.None);
   }
 
   public void CheckSql()
@@ -999,7 +998,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
 
   private sealed record QueryLoadResult(
     DataTable Table,
-    List<Dictionary<string, object?>> Rows,
     int RowCount,
     bool LimitRows,
     int MaxRows,

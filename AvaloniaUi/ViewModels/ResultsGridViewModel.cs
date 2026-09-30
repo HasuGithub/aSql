@@ -1,12 +1,14 @@
+using System.Data;
+using aDataLib;
 using ReactiveUI;
 
 namespace aSql.ViewModels;
 
 public sealed class ResultsGridViewModel : ViewModelBase
 {
-  private IReadOnlyList<string> _columnNames = [];
+  private IReadOnlyList<DatDefTable.DatDefTableField> _columnNames = [];
 
-  public IReadOnlyList<Dictionary<string, object?>> Rows
+  public DataView Rows
   {
     get;
     private set
@@ -18,14 +20,14 @@ public sealed class ResultsGridViewModel : ViewModelBase
 
   public string RowCountDisplayText => $"Zeilen im Grid: {Rows.Count}";
 
-  public IReadOnlyList<string>? ColumnNames
+  public IReadOnlyList<DatDefTable.DatDefTableField>? ColumnNames
   {
     get => _columnNames;
     set => this.RaiseAndSetIfChanged(ref _columnNames, value ?? []);
   }
 
-  public void SetRows(IEnumerable<Dictionary<string, object?>> rows)
+  public void SetRows(DataView datView)
   {
-    Rows = rows as IReadOnlyList<Dictionary<string, object?>> ?? [.. rows];
+    Rows = datView;
   }
 }

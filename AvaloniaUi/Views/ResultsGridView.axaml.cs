@@ -1,3 +1,4 @@
+using aDataLib;
 using aSql.Converter;
 using aSql.ViewModels;
 using Avalonia;
@@ -6,7 +7,11 @@ using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
+using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
+using Avalonia.Markup.Xaml.Templates;
+using Avalonia.Media;
+using Avalonia.VisualTree;
 using DataGrid = Avalonia.Controls.DataGrid;
 using DataGridTextColumn = Avalonia.Controls.DataGridTextColumn;
 
@@ -90,23 +95,36 @@ public partial class ResultsGridView : UserControl
     });
   }
 
-  private static void RebuildColumns(DataGrid grid, IReadOnlyList<string> columnNames)
+  private static void RebuildColumns(DataGrid grid, IReadOnlyList<DatDefTable.DatDefTableField> columnNames)
   {
     grid.Columns.Clear();
 
-    foreach (var name in columnNames)
+    for (var i = 0; i < columnNames.Count; i++)
     {
-      // TODO: Später nochmal prüfen... 
-#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
+      var name = columnNames[i].Alias.Length > 0 ? columnNames[i].Alias : columnNames[i].Name;
       grid.Columns.Add(new DataGridTextColumn
       {
-        Header = name,
-        Binding = new Binding($"[{name}]") { Converter = new NullToNullStringConverter() }
+        Header = name , 
+        IsReadOnly = columnNames[i].MyTable.HasUniqueIndex is false,
+        Binding = new Binding($"Row.ItemArray[{i}]")
+        {
+          Converter = new NullToNullStringConverter(),
+          Mode = BindingMode.TwoWay
+        },
       });
-#pragma warning restore IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
-#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+      var header = GetHeaderFromColumn(grid, name);
+      header?.Foreground = columnNames[i].MyTable.HasUniqueIndex
+        ? new SolidColorBrush(Colors.YellowGreen)
+        : new SolidColorBrush(Colors.OrangeRed);
     }
+  }
+
+  public static DataGridColumnHeader? GetHeaderFromColumn(DataGrid myDataGrid, string bez)
+  {
+    var headers = myDataGrid.GetVisualDescendants()
+      .OfType<DataGridColumnHeader>();
+
+    return headers.FirstOrDefault(h => h.Content?.ToString() == bez);
   }
 
   private async void ResultsGrid_OnKeyDown(object? sender, KeyEventArgs e)

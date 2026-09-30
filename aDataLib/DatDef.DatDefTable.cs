@@ -36,6 +36,8 @@ public class DatDefTable : IDisposable
   public string Key { get; }
   public int MyIndex { get; }
 
+  public bool HasUniqueIndex => _uniqueIndexFields.Count > 0;
+
   public int FieldsCount => Fields.Count;
 
   public List<DatDefTableField> Fields { get; private set; }
