@@ -45,14 +45,15 @@
                     Background="#FF222428">
         <ItemsControl x:Name="StatusMessageItems"
                       ItemsSource="{CompiledBinding Entries}"
-                      FontFamily="Inter, Segoe UI, Arial"
-                      FontSize="10"
+                      FontFamily="Cascadia Code"
+                      FontWeight="Light"
+                      FontSize="12"
                       Margin="4">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="viewModels:StatusMessageEntry">
               <TextBox x:Name="StatusMessageText"
                        Text="{CompiledBinding Text}"
-                       FontFamily="Inter, Segoe UI, Arial"
+                       FontFamily="Cascadia Code"
                        IsReadOnly="True"
                        TextWrapping="Wrap"
                        Foreground="{CompiledBinding Foreground}"

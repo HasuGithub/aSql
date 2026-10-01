@@ -66,10 +66,10 @@
                                  VerticalAlignment="Stretch"
                                  HorizontalScrollBarVisibility="Auto"
                                  VerticalScrollBarVisibility="Auto"
-                                 Foreground="#FFC7CDD4"
-                                 FontFamily="Cascadia Mono, Consolas, Courier New"
+                                 Foreground="WhiteSmoke"
+                                 FontFamily="Jetbrains Mono"
+                                 FontWeight="DemiBold"
                                  FontSize="13" />
-
       </Grid>
     </TabItem>
     <TabItem Header="Tables"

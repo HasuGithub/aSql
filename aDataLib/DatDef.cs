@@ -191,8 +191,8 @@ public sealed class DatDef
   {
     if (JoinsCount <= 0) return;
     sql.Append(DbConnect.UseUpperCaseSql ? "FROM\n" : "From\n");
-    sql.Append(' ', JoinsCount - 1);
-    sql.Append(' ', JoinsCount - 1);
+    sql.Append(' ');
+    // sql.Append(' ', JoinsCount - 1);
 
     var text = "";
     var b = "";
