@@ -42,7 +42,7 @@ jobs:
     # 2. OUTPUT: Kompiliert das Hauptprojekt als framework-abhängige App (OHNE .NET-Laufzeit)
     # Wichtig: Falls .NET 10 die Datei fälschlicherweise erzwingt, sorgt --no-self-contained für die korrekte Trennung.
     - name: Publish the Application (Framework-Dependent)
-      run: dotnet publish AvaloniaUi/aSql.csproj -c ${{ matrix.configuration }} -r win-x64 --self-contained false --no-self-contained -p:PublishSingleFile=true -o ./publish-dependent
+      run: dotnet publish AvaloniaUi/aSql.csproj -c ${{ matrix.configuration }} -r win-x64 --no-self-contained -p:PublishSingleFile=true -o ./publish-dependent
 
     # Erstellt ZIP-Archive aus den vollständigen Ausgabeordnern (inkl. aller Assemblys/DLLs)
     - name: Create Zip Archives for Release
