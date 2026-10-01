@@ -1,27 +1,15 @@
-using System.Data;
-using System.Dynamic;
-
 using aDataLib;
-
 using aSql.Converter;
 using aSql.ViewModels;
-
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
-using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
-using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Media;
-using Avalonia.Remote.Protocol.Input;
-using Avalonia.Threading;
 using Avalonia.VisualTree;
-
-using DynamicData;
-
 using DataGrid = Avalonia.Controls.DataGrid;
 using DataGridTextColumn = Avalonia.Controls.DataGridTextColumn;
 using Key = Avalonia.Input.Key;
@@ -33,6 +21,9 @@ public partial class ResultsGridView : UserControl
   private const double GridFontZoomStep = 0.5;
   private const double DefaultGridFontSize = 13.0;
   private const double MinGridFontSize = 6.0;
+  private bool _isUpdateRunning;
+
+  private object? _originalCellValueBackup;
 
   public ResultsGridView()
   {
@@ -115,13 +106,13 @@ public partial class ResultsGridView : UserControl
       var name = t.Alias.Length > 0 ? t.Alias : t.Name;
       grid.Columns.Add(new DataGridTextColumn
       {
-        Header = name , 
+        Header = name,
         IsReadOnly = t.MyTable.HasUniqueIndex is false,
         Binding = new Binding($"[{name}]")
         {
           Converter = new NullToNullStringConverter(),
           Mode = BindingMode.TwoWay
-        },
+        }
       });
       var header = GetHeaderFromColumn(grid, name);
       header?.Foreground = t.MyTable.HasUniqueIndex
@@ -165,26 +156,30 @@ public partial class ResultsGridView : UserControl
     }
   }
 
-  private bool _isUpdateRunning;
-
   private void ResultsGrid_OnCellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
   {
-    HandleUpdateCell(sender, e);
+    HandleUpdateCell(e);
   }
 
-  private async void HandleUpdateCell(object? sender, DataGridCellEditEndingEventArgs e)
+  private void HandleUpdateCell(DataGridCellEditEndingEventArgs e)
   {
+    if (e.EditAction == DataGridEditAction.Cancel) return;
+
     try
     {
-      var editingTextBox = e.EditingElement as TextBox;
       if (_isUpdateRunning) return;
       if (this.FindControl<DataGrid>("ResultsGrid") is not { } grid) return;
-      if (DataContext is not SqlEditorViewModel { ResultsGrid: { } resultsGrid } ||
-          e.Row?.DataContext is not SqlEditorViewModel.DynamicRowWrapper dRow || grid.CurrentColumn is null) return;
+      if (DataContext is not SqlEditorViewModel { ResultsGrid: { } resultsGridVm } ||
+          e.Row?.DataContext is not DynamicRowWrapper dRow || grid.CurrentColumn is null) return;
       _isUpdateRunning = true;
-      var newValue = editingTextBox?.Text ?? string.Empty;
       var fieldName = grid.CurrentColumn.Header?.ToString() ?? string.Empty;
-        e.Cancel = resultsGrid.UpdateCell(fieldName, newValue, dRow) is false;
+      var editingTextBox = e.EditingElement as TextBox;
+      var newValue = editingTextBox?.Text ?? string.Empty;
+      if (resultsGridVm.UpdateCell(fieldName, newValue, dRow)) return;
+      e.Cancel = true;
+      dRow[fieldName] = _originalCellValueBackup;
+      editingTextBox?.Text = _originalCellValueBackup?.ToString() ?? string.Empty;
+      grid.CancelEdit(DataGridEditingUnit.Cell);
     }
     catch
     {
@@ -194,5 +189,12 @@ public partial class ResultsGridView : UserControl
     {
       _isUpdateRunning = false;
     }
+  }
+
+  private void ResultsGrid_OnBeginningEdit(object? sender, DataGridBeginningEditEventArgs e)
+  {
+    if (e.Row.DataContext is not DynamicRowWrapper row) return;
+    var columnName = e.Column.Header?.ToString() ?? "";
+    _originalCellValueBackup = row[columnName];
   }
 }

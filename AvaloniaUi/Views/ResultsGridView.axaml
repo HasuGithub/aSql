@@ -79,6 +79,7 @@
                 SelectionMode="Single"
                 ClipboardCopyMode="None"
                 KeyDown="ResultsGrid_OnKeyDown"
+                BeginningEdit="ResultsGrid_OnBeginningEdit"
                 CellEditEnding="ResultsGrid_OnCellEditEnding"
                 SelectedItem="{CompiledBinding ResultsGrid.SelectedItem}"
                 ItemsSource="{CompiledBinding ResultsGrid.Rows}">

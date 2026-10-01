@@ -1,5 +1,4 @@
 using System.Collections.ObjectModel;
-using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
@@ -1074,51 +1073,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
     bool LimitRows,
     int MaxRows,
     QueryCancellationReason CancellationReason);
-
-  public sealed class DynamicRowWrapper : INotifyPropertyChanged
-  {
-    private readonly IDictionary<string, object?> _data;
-
-    public event PropertyChangedEventHandler? PropertyChanged;
-
-    public DynamicRowWrapper(ExpandoObject expando)
-    {
-      _data = expando;
-      if (expando is INotifyPropertyChanged notifyExpando)
-      {
-        notifyExpando.PropertyChanged += (_, e) =>
-        {
-          if (!string.IsNullOrEmpty(e.PropertyName))
-          {
-            OnIndexerChanged(e.PropertyName);
-          }
-        };
-      }
-    }
-
-    public object? this[string key]
-    {
-      get => _data.TryGetValue(key, out var val) ? val : null;
-      set
-      {
-        if (_data.TryGetValue(key, out var oldVal) && Equals(oldVal, value))
-          return;
-
-        _data[key] = value;
-
-        OnIndexerChanged(key);
-      }
-    }
-
-    public IDictionary<string, object?> Data => _data;
-
-    private void OnIndexerChanged(string key)
-    {
-      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"Item[{key}]"));
-      // Alternativ (Falls Avalonia in manchen Versionen den exakten Key ignoriert):
-      // PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
-    }
-  }
 
   private enum QueryCancellationReason
   {
