@@ -1,9 +1,6 @@
 using System.Data.Common;
 using System.Text;
-
 using aDataLib.Formatter;
-
-using Microsoft.Data.SqlClient;
 
 namespace aDataLib;
 
@@ -13,8 +10,6 @@ public sealed class DatDef
   private string _brackClose = string.Empty;
   private string _brackOpen = string.Empty;
   private List<DatDefCond> _conds = null!;
-  private bool _debugMode;
-  private string _debugString = "";
   private List<DatDefCond> _groupConds = null!;
   private Dictionary<string, int> _groupIndex = null!;
   private List<DatDefGroup> _groups = null!;
@@ -36,17 +31,7 @@ public sealed class DatDef
     TablesAdd(schema, firstTable, "");
   }
 
-  public bool UseExceptionsOnWrite { get; set; }
-
-  public bool DebugMode
-  {
-    get => _debugMode;
-    set
-    {
-      _debugMode = value;
-      _debugString = "";
-    }
-  }
+  public bool DebugMode { get; set; }
 
   public Dictionary<string, DatDefTable.DatDefTableField> AllFields { get; private set; } = null!;
 
@@ -108,6 +93,7 @@ public sealed class DatDef
 
   private void Init(DbConnect dbConnect)
   {
+    // TODO: unnötige Typen entfernen
     _sqlType = SqlTypes.Select;
     DbConnect = dbConnect;
     dbCmd?.Dispose();
@@ -127,7 +113,7 @@ public sealed class DatDef
     _conds = [];
     _groupConds = [];
     _sql = new StringBuilder();
-    _debugMode = false;
+    DebugMode = false;
   }
 
   public void Clear()
@@ -144,33 +130,12 @@ public sealed class DatDef
     SelectIsDistinct = false;
   }
 
-  internal int ExecuteWrite(Func<string> sqlFactory, string operationName)
-  {
-    ArgumentNullException.ThrowIfNull(sqlFactory);
-    try
-    {
-      var sql = sqlFactory();
-      return Utility.DbExecute(dbCmd!, sql, DebugMode, ref _debugString);
-    }
-    catch (SqlException ex)
-    {
-      WriteDebugMessage("<error> " + operationName + ": " + ex.Message);
-      if (UseExceptionsOnWrite) throw;
-      return -1;
-    }
-    catch (InvalidOperationException ex)
-    {
-      WriteDebugMessage("<error> " + operationName + ": " + ex.Message);
-      if (UseExceptionsOnWrite) throw;
-      return -1;
-    }
-  }
-
   internal void WriteDebugMessage(string message)
   {
-    if (!_debugMode || string.IsNullOrWhiteSpace(message)) return;
-    _debugString += message;
-    if (!message.EndsWith("\n", StringComparison.Ordinal)) _debugString += "\n";
+    if (!DebugMode || string.IsNullOrWhiteSpace(message)) return;
+    if (!message.EndsWith("\n", StringComparison.Ordinal))
+    {
+    }
   }
 
   internal void AllFieldsRefresh()
@@ -203,7 +168,6 @@ public sealed class DatDef
     if (_sqlType == SqlTypes.Select) BuildSqlAddSelectFields(_sql);
     if (JoinsCount == 0 && TablesCount == 0) return;
     BuildSqlFromClause(_sql);
-    BuildSqlWriteClause(_sql);
     if (_sqlType != SqlTypes.Insert) BuildSqlAddWhere(_sql, false);
     if (_sqlType == SqlTypes.Select) BuildSqlAddGroupAndOrder(_sql);
     _sql.Append(UseTopEnabled && DbConnect.DbType is DataBaseTypes.Oracle
@@ -223,35 +187,12 @@ public sealed class DatDef
         BuildSqlAddSqlTablePart(sql, _sqlType, i == 0, this[i]!.Name, this[i]!.Alias);
   }
 
-  private void BuildSqlWriteClause(StringBuilder sql)
-  {
-    switch (_sqlType)
-    {
-      case SqlTypes.Insert:
-        BuildSqlAddInsertPart(sql, false, 0);
-        break;
-      case SqlTypes.Update:
-        BuildSqlAddUpDatePart(sql, false, false, 0);
-        break;
-      case SqlTypes.Select:
-      case SqlTypes.Delete:
-        break;
-      default:
-        throw new ArgumentOutOfRangeException();
-    }
-  }
-
   private void BuildSqlAddJoinSections(StringBuilder sql)
-  {
-    BuildSqlAddJoinSectionsForSqlServerOrAccess(sql);
-  }
-
-  private void BuildSqlAddJoinSectionsForSqlServerOrAccess(StringBuilder sql)
   {
     if (JoinsCount <= 0) return;
     sql.Append(DbConnect.UseUpperCaseSql ? "FROM\n" : "From\n");
-    sql.Append(' ', JoinsCount - 1);
-    sql.Append(' ', JoinsCount - 1);
+    sql.Append(' ');
+    // sql.Append(' ', JoinsCount - 1);
 
     var text = "";
     var b = "";
@@ -521,10 +462,19 @@ public sealed class DatDef
       {
         var t = this[this[tabIndex]!.Name];
         if (t?.Schema.Length > 0)
-          sql.Append($"{_brackOpen}{t.Schema}{_brackClose}.");
-        sql.Append(_brackOpen).Append(this[tabIndex]!.Name).Append(_brackClose)
-          .Append('.').Append(_brackOpen).Append(field.Name).Append(_brackClose)
-          .Append(" = ");
+        {
+          var schem = DbConnect.UseUpperCaseSql ? t.Schema.ToUpper() : t.Schema;
+          sql.Append($"{_brackOpen}{schem}{_brackClose}.");
+        }
+
+        if (DbConnect.UseUpperCaseSql)
+          sql.Append(_brackOpen).Append(this[tabIndex]!.Name.ToUpper()).Append(_brackClose)
+            .Append('.').Append(_brackOpen).Append(field.Name.ToUpper()).Append(_brackClose)
+            .Append(" = ");
+        else
+          sql.Append(_brackOpen).Append(this[tabIndex]!.Name).Append(_brackClose)
+            .Append('.').Append(_brackOpen).Append(field.Name).Append(_brackClose)
+            .Append(" = ");
         BuildSqlAppendFieldValue(sql, field.FieldType, field.Value, UseSimpleDate);
         sql.Append('\n');
       }
@@ -533,51 +483,6 @@ public sealed class DatDef
     }
 
     sql.Append('\n');
-  }
-
-  internal void BuildSqlAddInsertPart(StringBuilder sql, bool useParameterSyntax, int tabIndex)
-  {
-    sql.Append('(');
-    for (var i = 0; i < this[tabIndex]!.FieldsCount; i++)
-    {
-      var field = this[tabIndex]![i]!;
-      if (field.IsReadOnly) continue;
-      sql.Append(i == 0 ? "  " : ", ");
-      if (useParameterSyntax)
-      {
-        sql.Append(_brackOpen).Append(field.Name).Append(_brackClose);
-      }
-      else
-      {
-        if (DbConnect.DbType != DataBaseTypes.MsAccess)
-        {
-          var t = this[this[tabIndex]!.Name];
-          if (t?.Schema.Length > 0) sql.Append($"{_brackOpen}{t.Schema}{_brackClose}.");
-          sql.Append(_brackOpen).Append(this[tabIndex]!.Name).Append(_brackClose).Append('.');
-        }
-
-        sql.Append(_brackOpen).Append(field.Name).Append(_brackClose).Append('\n');
-      }
-    }
-
-    sql.Append(")\nValues (");
-    for (var j = 0; j < this[tabIndex]!.FieldsCount; j++)
-    {
-      var field = this[tabIndex]![j]!;
-      if (field.IsReadOnly) continue;
-      sql.Append(j == 0 ? "  " : ", ");
-      if (useParameterSyntax)
-      {
-        sql.Append('?');
-      }
-      else
-      {
-        BuildSqlAppendFieldValue(sql, field.FieldType, field.Value, UseSimpleDate);
-        sql.Append('\n');
-      }
-    }
-
-    sql.Append(')');
   }
 
   private void BuildSqlAppendFieldValue(StringBuilder sql, DbFieldType fieldDbType, object? fieldValue,
@@ -663,13 +568,13 @@ public sealed class DatDef
           UseTopEnabled && DbConnect.DbType is DataBaseTypes.MsSqlServer ? $" TOP({MaxDisplayedRows})\n" : "\n");
         return;
       case SqlTypes.Insert:
-        sql.Append("Insert\n");
+        sql.Append(DbConnect.UseUpperCaseSql ? "INSERT\n" : "insert\n");
         return;
       case SqlTypes.Update:
-        sql.Append("UpDate\n");
+        sql.Append(DbConnect.UseUpperCaseSql ? "UPDATE\n" : "update\n");
         return;
       case SqlTypes.Delete:
-        sql.Append("Delete\n");
+        sql.Append(DbConnect.UseUpperCaseSql ? "DELETE\n" : "delete\n");
         return;
       default:
         throw new ArgumentOutOfRangeException(nameof(sqlType), sqlType, null);
@@ -688,14 +593,15 @@ public sealed class DatDef
       OpTypes.WhereNot => isGroup ? "Having Not " : "Where  Not ",
       _ => ""
     };
+
     sql.Append(DbConnect.UseUpperCaseSql ? opy.ToUpper() : opy);
 
     sql.Append(a.BracksOpen).Append(' ');
 
     if (a.OpType is OpTypes.Where or OpTypes.And or OpTypes.Or
         && a is { CompType: CompTypes.Unequal, CompValue.Length: > 0 }
-        && string.Equals(a.CompValue, "null", StringComparison.OrdinalIgnoreCase))
-      sql.Append("Not ");
+        && string.Equals(a.CompValue, DbConnect.UseUpperCaseSql ? "NULL" : "null", StringComparison.OrdinalIgnoreCase))
+      sql.Append(DbConnect.UseUpperCaseSql ? "NOT" : "Not ");
 
     if (a.FieldAgg != AggregateTypes.Nothing) AppendAggregatePrefix(sql, a.FieldAgg);
 
@@ -731,7 +637,7 @@ public sealed class DatDef
       case CompTypes.GreaterEqual: sql.Append("  >=  "); break;
       case CompTypes.SmallerEqual: sql.Append("  <=  "); break;
       case CompTypes.Like: sql.Append(" LIKE "); break;
-      case CompTypes.In: sql.Append(" In ( "); break;
+      case CompTypes.In: sql.Append(" IN ( "); break;
       case CompTypes.IsNull:
         sql.Append(" IS NULL ");
         sql.Append(a.BracksClose).Append('\n');

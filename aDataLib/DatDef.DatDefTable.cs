@@ -36,6 +36,8 @@ public class DatDefTable : IDisposable
   public string Key { get; }
   public int MyIndex { get; }
 
+  public bool HasUniqueIndex => _uniqueIndexFields.Count > 0;
+
   public int FieldsCount => Fields.Count;
 
   public List<DatDefTableField> Fields { get; private set; }
@@ -64,44 +66,12 @@ public class DatDefTable : IDisposable
     GC.SuppressFinalize(this);
   }
 
-  private string GetDeleteSqlIntern(CondTypes condType)
-  {
-    _sql.Length = 0;
-    _dd.BuildSqlAddSqlTypePart(_sql, SqlTypes.Delete);
-    _dd.BuildSqlAddSqlTablePart(_sql, SqlTypes.Delete, true, Name, "");
-    switch (condType)
-    {
-      case CondTypes.None:
-      {
-        var opType = OpTypes.Where;
-        foreach (var f in _uniqueIndexFields)
-        {
-          _dd.BuildSqlAddWherePart(_sql, false, new DatDef.WhereConditionArgs(
-            opType, "", f.MyTable.Name, f.FieldAgg, f.Name, "",
-            f.FieldType, CompTypes.Equal, f.Value?.ToString() ?? "",
-            "", AggregateTypes.Nothing, "", ""));
-          opType = OpTypes.And;
-        }
-
-        break;
-      }
-      case CondTypes.DdCondition:
-        _dd.BuildSqlAddWhere(_sql, false);
-        break;
-      default:
-        throw new ArgumentOutOfRangeException(nameof(condType), condType, null);
-    }
-
-    _sql.Append('\n');
-    return _sql.ToString();
-  }
-
-  private string GetUpDateSqlIntern(CondTypes condType, bool takeOnlyChangedFields, bool useParamSyntax)
+  public string GetUpDateSqlIntern(CondTypes condType, bool takeOnlyChangedFields)
   {
     _sql.Length = 0;
     _dd.BuildSqlAddSqlTypePart(_sql, SqlTypes.Update);
     _dd.BuildSqlAddSqlTablePart(_sql, SqlTypes.Update, true, Name, "");
-    _dd.BuildSqlAddUpDatePart(_sql, takeOnlyChangedFields, useParamSyntax, MyIndex);
+    _dd.BuildSqlAddUpDatePart(_sql, takeOnlyChangedFields, false, MyIndex);
     switch (condType)
     {
       case CondTypes.None:
@@ -130,49 +100,6 @@ public class DatDefTable : IDisposable
 
     _sql.Append('\n');
     return _sql.ToString();
-  }
-
-  private string GetInsertSqlIntern(bool useParamSyntax)
-  {
-    _sql.Length = 0;
-    _dd.BuildSqlAddSqlTypePart(_sql, SqlTypes.Insert);
-    _dd.BuildSqlAddSqlTablePart(_sql, SqlTypes.Insert, true, Name, "");
-    _dd.BuildSqlAddInsertPart(_sql, useParamSyntax, MyIndex);
-    _sql.Append('\n');
-    return _sql.ToString();
-  }
-
-  public int WriteUpDate()
-  {
-    return _dd.ExecuteWrite(() => GetUpDateSqlIntern(CondTypes.DdCondition, false, false), nameof(WriteUpDate));
-  }
-
-  public int WriteUpDate(CondTypes condType, bool takeOnlyChangedFields)
-  {
-    return _dd.ExecuteWrite(() => GetUpDateSqlIntern(condType, takeOnlyChangedFields, false), nameof(WriteUpDate));
-  }
-
-  // ReSharper disable once UnusedMember.Global
-  public int WriteInsert()
-  {
-    return _dd.ExecuteWrite(() => GetInsertSqlIntern(false), nameof(WriteInsert));
-  }
-
-  public int WriteInsert(ref long newPrim)
-  {
-    if (this["prim"] != null) return 0;
-    _dd.WriteDebugMessage("<error> : Prim-Feld nicht enthalten");
-    return -1;
-  }
-
-  public int WriteDelete(CondTypes condType)
-  {
-    return _dd.ExecuteWrite(() => GetDeleteSqlIntern(condType), nameof(WriteDelete));
-  }
-
-  public int WriteDelete()
-  {
-    return _dd.ExecuteWrite(() => GetDeleteSqlIntern(CondTypes.DdCondition), nameof(WriteDelete));
   }
 
   private void BuildUniqueIndex()

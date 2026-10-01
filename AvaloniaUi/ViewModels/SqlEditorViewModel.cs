@@ -1,15 +1,23 @@
+using System.Collections.ObjectModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Reactive.Linq;
 using System.Windows.Input;
+
 using aDataLib;
 using Avalonia.Threading;
+
 using Microsoft.Data.SqlClient;
+
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
+
 using MySqlConnector;
+
 using Oracle.ManagedDataAccess.Client;
+
 using ReactiveUI;
 
 namespace aSql.ViewModels;
@@ -188,12 +196,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
 
   public string MaxDisplayedRowsDisplayText => MaxDisplayedRows.ToString();
 
-  public DataTable? Results
-  {
-    get;
-    private set => this.RaiseAndSetIfChanged(ref field, value);
-  }
-
   public ResultsGridViewModel ResultsGrid { get; } = new();
 
   public IObservable<bool> CanExecuteSql =>
@@ -201,12 +203,14 @@ public sealed class SqlEditorViewModel : ViewModelBase
 
   public IObservable<bool> CanClear => this.WhenAnyValue(x => x.SqlText).Select(s => !string.IsNullOrWhiteSpace(s));
 
+  private bool _isExecuting;
+
   public bool IsExecuting
   {
-    get;
+    get => _isExecuting;
     private set
     {
-      this.RaiseAndSetIfChanged(ref field, value);
+      this.RaiseAndSetIfChanged(ref _isExecuting, value);
       this.RaisePropertyChanged(nameof(CanCancelLoad));
       this.RaisePropertyChanged(nameof(CancelLoadCommand));
     }
@@ -487,6 +491,56 @@ public sealed class SqlEditorViewModel : ViewModelBase
     SqlTreeView.RegenerateSqlText();
   }
 
+  public bool ExecuteNonQuery(string sql)
+  {
+    if (IsExecuting) return false;
+
+    if (string.IsNullOrWhiteSpace(sql))
+    {
+      StatusMessage = "Keine ausführbare SQL-Anweisung.";
+      return false;
+    }
+
+    var ret = true;
+
+    _isExecuting = true;
+    StatusMessage = string.Concat(
+      "Führe SQL aus ...",
+      Environment.NewLine,
+      sql.TrimEnd(),
+      Environment.NewLine);
+
+    using var con = CreateNativeExecutionConnection();
+    con.Open();
+    using var cmd = con.CreateCommand();
+    cmd.CommandText = sql;
+    cmd.CommandTimeout = CommandTimeoutSeconds;
+
+    try
+    {
+      var stopwatch = Stopwatch.StartNew();
+      var executeStart = DateTime.Now;
+      var efrows = cmd.ExecuteNonQuery();
+      stopwatch.Stop();
+      var executeEnd = DateTime.Now;
+      var summary = $"SQL ausgeführt. Geänderte Zeilen: {efrows}.";
+
+      StatusMessage = BuildExecuteStatusMessage(executeStart, executeEnd, stopwatch.Elapsed, summary);
+    }
+    catch (Exception ex)
+    {
+      this.RaisePropertyChanged(nameof(ResultsGrid.Rows));
+      StatusMessage = "Fehler bei der SQL-Ausführung: " + ex.Message;
+      ret = false;
+    }
+    finally
+    {
+      _isExecuting = false;
+    }
+
+    return ret;
+  }
+
   public async Task ExecuteSqlAsync()
   {
     if (IsExecuting) return;
@@ -511,7 +565,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
       var stopwatch = Stopwatch.StartNew();
       var executeStart = DateTime.Now;
 
-      Results = null;
       ResultsGrid.ColumnNames = [];
       ResultsGrid.SetRows([]);
 
@@ -520,6 +573,7 @@ public sealed class SqlEditorViewModel : ViewModelBase
       var maxRows = MaxDisplayedRows;
       var timeoutSeconds = CommandTimeoutSeconds;
 
+      IReadOnlyList<DatDefTable.DatDefTableField> columnNames = SqlDefinition?.AllFields.Values.ToList()!;
       using var manualCancelCts = new CancellationTokenSource();
       using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
       using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(manualCancelCts.Token, timeoutCts.Token);
@@ -531,12 +585,13 @@ public sealed class SqlEditorViewModel : ViewModelBase
         timeoutSeconds,
         limitRows,
         maxRows,
+        columnNames,
         executionCts.Token,
         manualCancelCts.Token);
 
-      Results = loadResult.Table;
-      ResultsGrid.ColumnNames = [.. loadResult.Table.Columns.Cast<DataColumn>().Select(c => c.ColumnName)];
-      ResultsGrid.SetRows(loadResult.Rows);
+      ResultsGrid.ColumnNames = columnNames;
+      ResultsGrid.SetRows(loadResult.Table);
+      ResultsGrid.SetCurrDatDef(SqlDefinition, this);
       this.RaisePropertyChanged(nameof(ResultsGrid.Rows));
 
       stopwatch.Stop();
@@ -556,7 +611,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
     }
     catch (Exception ex)
     {
-      Results = null;
       ResultsGrid.SetRows([]);
       this.RaisePropertyChanged(nameof(ResultsGrid.Rows));
       StatusMessage = "Fehler bei der SQL-Ausführung: " + ex.Message;
@@ -603,11 +657,11 @@ public sealed class SqlEditorViewModel : ViewModelBase
     int timeoutSeconds,
     bool limitRows,
     int maxRows,
+    IReadOnlyList<DatDefTable.DatDefTableField> columnNames,
     CancellationToken cancellationToken,
     CancellationToken manualCancellationToken)
   {
-    var table = new DataTable();
-    var bufferedRows = new List<Dictionary<string, object?>>();
+    var table = new ObservableCollection<DynamicRowWrapper>();
     var rowCount = 0;
 
     await con.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -647,28 +701,35 @@ public sealed class SqlEditorViewModel : ViewModelBase
       await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
         .ConfigureAwait(false);
 
-      var fieldCount = reader.FieldCount;
-      var names = new string[fieldCount];
-      for (var i = 0; i < fieldCount; i++)
-      {
-        names[i] = reader.GetName(i);
-        table.Columns.Add(names[i], reader.GetFieldType(i));
-      }
+      // var fieldCount = reader.FieldCount;
+      // var names = new string[fieldCount];
+      //for (var i = 0; i < fieldCount; i++)
+      //{
+      //  names[i] = reader.GetName(i);
+      //  table.Columns.Add(names[i], reader.GetFieldType(i));
+      //}
 
-      var values = new object[fieldCount];
+      // var values = new object[fieldCount];
 
       while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && (!limitRows || rowCount < maxRows))
       {
         cancellationToken.ThrowIfCancellationRequested();
 
-        reader.GetValues(values);
-        var rowValues = (object[])values.Clone(); // isolate per-row values
-        table.Rows.Add(rowValues);
+        //IDictionary<string, object?> row = new ExpandoObject();
 
-        var dict = new Dictionary<string, object?>(fieldCount);
-        for (var i = 0; i < fieldCount; i++) dict[names[i]] = rowValues[i];
+        var row = new DynamicRowWrapper(new ExpandoObject());
 
-        bufferedRows.Add(dict);
+        for (var i = 0; i < reader.FieldCount; i++)
+        {
+          var columnName = columnNames[i].Alias.Length > 0 ? columnNames[i].Alias : columnNames[i].Name;
+          var value = reader.IsDBNull(i) ? null! : reader.GetValue(i);
+          row[columnName] = value;
+        }
+
+        //reader.GetValues(values);
+        //var rowValues = (object[])values.Clone(); // isolate per-row values
+        table.Add(row);
+
         rowCount++;
       }
     }
@@ -678,10 +739,10 @@ public sealed class SqlEditorViewModel : ViewModelBase
         ? QueryCancellationReason.Manual
         : QueryCancellationReason.Timeout;
 
-      return new QueryLoadResult(table, bufferedRows, rowCount, limitRows, maxRows, reason);
+      return new QueryLoadResult(table, rowCount, limitRows, maxRows, reason);
     }
 
-    return new QueryLoadResult(table, bufferedRows, rowCount, limitRows, maxRows, QueryCancellationReason.None);
+    return new QueryLoadResult(table, rowCount, limitRows, maxRows, QueryCancellationReason.None);
   }
 
   public void CheckSql()
@@ -859,7 +920,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
   private void ClearResults()
   {
     SqlDefinition?.Clear();
-    Results = null;
     ResultsGrid.SetRows([]);
     this.RaisePropertyChanged(nameof(ResultsGrid.Rows));
     StatusMessage = string.Empty;
@@ -867,11 +927,11 @@ public sealed class SqlEditorViewModel : ViewModelBase
     RefreshTabs();
   }
 
-  public void AddTableToDefinition(DataTreeNode node, bool addAllFields = true, bool clearTableBefore = false)
+  public void AddTableToDefinition(DataTreeNode node, bool addAllFields = true, bool clearDefBefore = false)
   {
     if (SqlDefinition == null || string.IsNullOrWhiteSpace(node.Name)) return;
 
-    if (clearTableBefore) SqlDefinition.TablesClear();
+    if (clearDefBefore) SqlDefinition.Clear();
 
     var table = SqlDefinition.TablesAdd(string.Empty, node.Name, string.Empty, node.Tag);
     if (table != null && addAllFields) table.FieldsAdd("*");
@@ -1008,8 +1068,7 @@ public sealed class SqlEditorViewModel : ViewModelBase
   }
 
   private sealed record QueryLoadResult(
-    DataTable Table,
-    List<Dictionary<string, object?>> Rows,
+    ObservableCollection<DynamicRowWrapper> Table,
     int RowCount,
     bool LimitRows,
     int MaxRows,

@@ -9,9 +9,9 @@ public sealed record StatusMessageEntry(string Text, IBrush Foreground);
 
 public sealed class StatusMessageViewModel : ViewModelBase
 {
-  private static readonly IBrush InfoBrush = new SolidColorBrush(Color.Parse("#FF6495ED"));
-  private static readonly IBrush SuccessBrush = new SolidColorBrush(Color.Parse("#FF9BCB9B"));
-  private static readonly IBrush ErrorBrush = new SolidColorBrush(Color.Parse("#FFCC8F8F"));
+  private static readonly IBrush InfoBrush = new SolidColorBrush(Colors.DeepSkyBlue);
+  private static readonly IBrush SuccessBrush = new SolidColorBrush(Colors.LightGreen);
+  private static readonly IBrush ErrorBrush = new SolidColorBrush(Colors.LightCoral);
 
   private string _message = string.Empty;
 

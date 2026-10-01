@@ -1,3 +1,4 @@
+using aDataLib;
 using aSql.Converter;
 using aSql.ViewModels;
 using Avalonia;
@@ -7,8 +8,11 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.VisualTree;
 using DataGrid = Avalonia.Controls.DataGrid;
 using DataGridTextColumn = Avalonia.Controls.DataGridTextColumn;
+using Key = Avalonia.Input.Key;
 
 namespace aSql.Views;
 
@@ -17,6 +21,9 @@ public partial class ResultsGridView : UserControl
   private const double GridFontZoomStep = 0.5;
   private const double DefaultGridFontSize = 13.0;
   private const double MinGridFontSize = 6.0;
+  private bool _isUpdateRunning;
+
+  private object? _originalCellValueBackup;
 
   public ResultsGridView()
   {
@@ -90,23 +97,36 @@ public partial class ResultsGridView : UserControl
     });
   }
 
-  private static void RebuildColumns(DataGrid grid, IReadOnlyList<string> columnNames)
+  private static void RebuildColumns(DataGrid grid, IReadOnlyList<DatDefTable.DatDefTableField> columnNames)
   {
     grid.Columns.Clear();
 
-    foreach (var name in columnNames)
+    foreach (var t in columnNames)
     {
-      // TODO: Später nochmal prüfen... 
-#pragma warning disable IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
-#pragma warning disable IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
+      var name = t.Alias.Length > 0 ? t.Alias : t.Name;
       grid.Columns.Add(new DataGridTextColumn
       {
         Header = name,
-        Binding = new Binding($"[{name}]") { Converter = new NullToNullStringConverter() }
+        IsReadOnly = t.MyTable.HasUniqueIndex is false,
+        Binding = new Binding($"[{name}]")
+        {
+          Converter = new NullToNullStringConverter(),
+          Mode = BindingMode.TwoWay
+        }
       });
-#pragma warning restore IL3050 // Calling members annotated with 'RequiresDynamicCodeAttribute' may break functionality when AOT compiling.
-#pragma warning restore IL2026 // Members annotated with 'RequiresUnreferencedCodeAttribute' require dynamic access otherwise can break functionality when trimming application code
+      var header = GetHeaderFromColumn(grid, name);
+      header?.Foreground = t.MyTable.HasUniqueIndex
+        ? new SolidColorBrush(Colors.YellowGreen)
+        : new SolidColorBrush(Colors.OrangeRed);
     }
+  }
+
+  public static DataGridColumnHeader? GetHeaderFromColumn(DataGrid myDataGrid, string bez)
+  {
+    var headers = myDataGrid.GetVisualDescendants()
+      .OfType<DataGridColumnHeader>();
+
+    return headers.FirstOrDefault(h => h.Content?.ToString() == bez);
   }
 
   private async void ResultsGrid_OnKeyDown(object? sender, KeyEventArgs e)
@@ -134,5 +154,47 @@ public partial class ResultsGridView : UserControl
     {
       // ignored
     }
+  }
+
+  private void ResultsGrid_OnCellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
+  {
+    HandleUpdateCell(e);
+  }
+
+  private void HandleUpdateCell(DataGridCellEditEndingEventArgs e)
+  {
+    if (e.EditAction == DataGridEditAction.Cancel) return;
+
+    try
+    {
+      if (_isUpdateRunning) return;
+      if (this.FindControl<DataGrid>("ResultsGrid") is not { } grid) return;
+      if (DataContext is not SqlEditorViewModel { ResultsGrid: { } resultsGridVm } ||
+          e.Row?.DataContext is not DynamicRowWrapper dRow || grid.CurrentColumn is null) return;
+      _isUpdateRunning = true;
+      var fieldName = grid.CurrentColumn.Header?.ToString() ?? string.Empty;
+      var editingTextBox = e.EditingElement as TextBox;
+      var newValue = editingTextBox?.Text ?? string.Empty;
+      if (resultsGridVm.UpdateCell(fieldName, newValue, dRow)) return;
+      e.Cancel = true;
+      dRow[fieldName] = _originalCellValueBackup;
+      editingTextBox?.Text = _originalCellValueBackup?.ToString() ?? string.Empty;
+      grid.CancelEdit(DataGridEditingUnit.Cell);
+    }
+    catch
+    {
+      // Ignored
+    }
+    finally
+    {
+      _isUpdateRunning = false;
+    }
+  }
+
+  private void ResultsGrid_OnBeginningEdit(object? sender, DataGridBeginningEditEventArgs e)
+  {
+    if (e.Row.DataContext is not DynamicRowWrapper row) return;
+    var columnName = e.Column.Header?.ToString() ?? "";
+    _originalCellValueBackup = row[columnName];
   }
 }
