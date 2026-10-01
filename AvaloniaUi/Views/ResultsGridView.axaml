@@ -69,7 +69,7 @@
                 x:Name="ResultsGrid"
                 Margin="0,0,0,2"
                 AutoGenerateColumns="False"
-                IsReadOnly="True"
+                IsReadOnly="False"
                 Background="#FF222428"
                 FontSize="13"
                 HeadersVisibility="Column"
@@ -79,6 +79,8 @@
                 SelectionMode="Single"
                 ClipboardCopyMode="None"
                 KeyDown="ResultsGrid_OnKeyDown"
+                CellEditEnding="ResultsGrid_OnCellEditEnding"
+                SelectedItem="{CompiledBinding ResultsGrid.SelectedItem}"
                 ItemsSource="{CompiledBinding ResultsGrid.Rows}">
         <DataGrid.Styles>
           <Style Selector="DataGridColumnHeader">

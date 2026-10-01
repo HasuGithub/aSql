@@ -1,6 +1,11 @@
+using System.Data;
+using System.Dynamic;
+
 using aDataLib;
+
 using aSql.Converter;
 using aSql.ViewModels;
+
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
@@ -11,9 +16,15 @@ using Avalonia.Layout;
 using Avalonia.Markup.Xaml;
 using Avalonia.Markup.Xaml.Templates;
 using Avalonia.Media;
+using Avalonia.Remote.Protocol.Input;
+using Avalonia.Threading;
 using Avalonia.VisualTree;
+
+using DynamicData;
+
 using DataGrid = Avalonia.Controls.DataGrid;
 using DataGridTextColumn = Avalonia.Controls.DataGridTextColumn;
+using Key = Avalonia.Input.Key;
 
 namespace aSql.Views;
 
@@ -99,21 +110,21 @@ public partial class ResultsGridView : UserControl
   {
     grid.Columns.Clear();
 
-    for (var i = 0; i < columnNames.Count; i++)
+    foreach (var t in columnNames)
     {
-      var name = columnNames[i].Alias.Length > 0 ? columnNames[i].Alias : columnNames[i].Name;
+      var name = t.Alias.Length > 0 ? t.Alias : t.Name;
       grid.Columns.Add(new DataGridTextColumn
       {
         Header = name , 
-        IsReadOnly = columnNames[i].MyTable.HasUniqueIndex is false,
-        Binding = new Binding($"Row.ItemArray[{i}]")
+        IsReadOnly = t.MyTable.HasUniqueIndex is false,
+        Binding = new Binding($"[{name}]")
         {
           Converter = new NullToNullStringConverter(),
           Mode = BindingMode.TwoWay
         },
       });
       var header = GetHeaderFromColumn(grid, name);
-      header?.Foreground = columnNames[i].MyTable.HasUniqueIndex
+      header?.Foreground = t.MyTable.HasUniqueIndex
         ? new SolidColorBrush(Colors.YellowGreen)
         : new SolidColorBrush(Colors.OrangeRed);
     }
@@ -151,6 +162,37 @@ public partial class ResultsGridView : UserControl
     catch
     {
       // ignored
+    }
+  }
+
+  private bool _isUpdateRunning;
+
+  private void ResultsGrid_OnCellEditEnding(object? sender, DataGridCellEditEndingEventArgs e)
+  {
+    HandleUpdateCell(sender, e);
+  }
+
+  private async void HandleUpdateCell(object? sender, DataGridCellEditEndingEventArgs e)
+  {
+    try
+    {
+      var editingTextBox = e.EditingElement as TextBox;
+      if (_isUpdateRunning) return;
+      if (this.FindControl<DataGrid>("ResultsGrid") is not { } grid) return;
+      if (DataContext is not SqlEditorViewModel { ResultsGrid: { } resultsGrid } ||
+          e.Row?.DataContext is not SqlEditorViewModel.DynamicRowWrapper dRow || grid.CurrentColumn is null) return;
+      _isUpdateRunning = true;
+      var newValue = editingTextBox?.Text ?? string.Empty;
+      var fieldName = grid.CurrentColumn.Header?.ToString() ?? string.Empty;
+        e.Cancel = resultsGrid.UpdateCell(fieldName, newValue, dRow) is false;
+    }
+    catch
+    {
+      // Ignored
+    }
+    finally
+    {
+      _isUpdateRunning = false;
     }
   }
 }

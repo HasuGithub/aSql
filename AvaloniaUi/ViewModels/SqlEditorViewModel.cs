@@ -1,15 +1,24 @@
+using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Data;
 using System.Data.Common;
 using System.Diagnostics;
+using System.Dynamic;
 using System.Reactive.Linq;
 using System.Windows.Input;
+
 using aDataLib;
 using Avalonia.Threading;
+
 using Microsoft.Data.SqlClient;
+
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
+
 using MySqlConnector;
+
 using Oracle.ManagedDataAccess.Client;
+
 using ReactiveUI;
 
 namespace aSql.ViewModels;
@@ -195,12 +204,14 @@ public sealed class SqlEditorViewModel : ViewModelBase
 
   public IObservable<bool> CanClear => this.WhenAnyValue(x => x.SqlText).Select(s => !string.IsNullOrWhiteSpace(s));
 
+  private bool _isExecuting;
+
   public bool IsExecuting
   {
-    get;
+    get => _isExecuting;
     private set
     {
-      this.RaiseAndSetIfChanged(ref field, value);
+      this.RaiseAndSetIfChanged(ref _isExecuting, value);
       this.RaisePropertyChanged(nameof(CanCancelLoad));
       this.RaisePropertyChanged(nameof(CancelLoadCommand));
     }
@@ -481,6 +492,56 @@ public sealed class SqlEditorViewModel : ViewModelBase
     SqlTreeView.RegenerateSqlText();
   }
 
+  public bool ExecuteNonQuery(string sql)
+  {
+    if (IsExecuting) return false;
+
+    if (string.IsNullOrWhiteSpace(sql))
+    {
+      StatusMessage = "Keine ausführbare SQL-Anweisung.";
+      return false;
+    }
+
+    var ret = true;
+
+    _isExecuting = true;
+    StatusMessage = string.Concat(
+      "Führe SQL aus ...",
+      Environment.NewLine,
+      sql.TrimEnd(),
+      Environment.NewLine);
+
+    using var con = CreateNativeExecutionConnection();
+    con.Open();
+    using var cmd = con.CreateCommand();
+    cmd.CommandText = sql;
+    cmd.CommandTimeout = CommandTimeoutSeconds;
+
+    try
+    {
+      var stopwatch = Stopwatch.StartNew();
+      var executeStart = DateTime.Now;
+      var efrows = cmd.ExecuteNonQuery();
+      stopwatch.Stop();
+      var executeEnd = DateTime.Now;
+      var summary = $"SQL ausgeführt. Geänderte Zeilen: {efrows}.";
+
+      StatusMessage = BuildExecuteStatusMessage(executeStart, executeEnd, stopwatch.Elapsed, summary);
+    }
+    catch (Exception ex)
+    {
+      this.RaisePropertyChanged(nameof(ResultsGrid.Rows));
+      StatusMessage = "Fehler bei der SQL-Ausführung: " + ex.Message;
+      ret = false;
+    }
+    finally
+    {
+      _isExecuting = false;
+    }
+
+    return ret;
+  }
+
   public async Task ExecuteSqlAsync()
   {
     if (IsExecuting) return;
@@ -513,6 +574,7 @@ public sealed class SqlEditorViewModel : ViewModelBase
       var maxRows = MaxDisplayedRows;
       var timeoutSeconds = CommandTimeoutSeconds;
 
+      IReadOnlyList<DatDefTable.DatDefTableField> columnNames = SqlDefinition?.AllFields.Values.ToList()!;
       using var manualCancelCts = new CancellationTokenSource();
       using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(timeoutSeconds));
       using var executionCts = CancellationTokenSource.CreateLinkedTokenSource(manualCancelCts.Token, timeoutCts.Token);
@@ -524,15 +586,13 @@ public sealed class SqlEditorViewModel : ViewModelBase
         timeoutSeconds,
         limitRows,
         maxRows,
+        columnNames,
         executionCts.Token,
         manualCancelCts.Token);
 
-      
-      ResultsGrid.ColumnNames = SqlDefinition?.AllFields.Values.ToList();
-
-      //ResultsGrid.ColumnNames = [.. loadResult.Table.Columns.Cast<DataColumn>().Select(c => c.ColumnName)];
-
-      ResultsGrid.SetRows(loadResult.Table.DefaultView);
+      ResultsGrid.ColumnNames = columnNames;
+      ResultsGrid.SetRows(loadResult.Table);
+      ResultsGrid.SetCurrDatDef(SqlDefinition, this);
       this.RaisePropertyChanged(nameof(ResultsGrid.Rows));
 
       stopwatch.Stop();
@@ -598,10 +658,11 @@ public sealed class SqlEditorViewModel : ViewModelBase
     int timeoutSeconds,
     bool limitRows,
     int maxRows,
+    IReadOnlyList<DatDefTable.DatDefTableField> columnNames,
     CancellationToken cancellationToken,
     CancellationToken manualCancellationToken)
   {
-    var table = new DataTable();
+    var table = new ObservableCollection<DynamicRowWrapper>();
     var rowCount = 0;
 
     await con.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -641,23 +702,34 @@ public sealed class SqlEditorViewModel : ViewModelBase
       await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
         .ConfigureAwait(false);
 
-      var fieldCount = reader.FieldCount;
-      var names = new string[fieldCount];
-      for (var i = 0; i < fieldCount; i++)
-      {
-        names[i] = reader.GetName(i);
-        table.Columns.Add(names[i], reader.GetFieldType(i));
-      }
+      // var fieldCount = reader.FieldCount;
+      // var names = new string[fieldCount];
+      //for (var i = 0; i < fieldCount; i++)
+      //{
+      //  names[i] = reader.GetName(i);
+      //  table.Columns.Add(names[i], reader.GetFieldType(i));
+      //}
 
-      var values = new object[fieldCount];
+      // var values = new object[fieldCount];
 
       while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && (!limitRows || rowCount < maxRows))
       {
         cancellationToken.ThrowIfCancellationRequested();
 
-        reader.GetValues(values);
-        var rowValues = (object[])values.Clone(); // isolate per-row values
-        table.Rows.Add(rowValues);
+        //IDictionary<string, object?> row = new ExpandoObject();
+
+        var row = new DynamicRowWrapper(new ExpandoObject());
+
+        for (var i = 0; i < reader.FieldCount; i++)
+        {
+          var columnName = columnNames[i].Alias.Length > 0 ? columnNames[i].Alias : columnNames[i].Name;
+          var value = reader.IsDBNull(i) ? null! : reader.GetValue(i);
+          row[columnName] = value;
+        }
+
+        //reader.GetValues(values);
+        //var rowValues = (object[])values.Clone(); // isolate per-row values
+        table.Add(row);
 
         rowCount++;
       }
@@ -997,11 +1069,56 @@ public sealed class SqlEditorViewModel : ViewModelBase
   }
 
   private sealed record QueryLoadResult(
-    DataTable Table,
+    ObservableCollection<DynamicRowWrapper> Table,
     int RowCount,
     bool LimitRows,
     int MaxRows,
     QueryCancellationReason CancellationReason);
+
+  public sealed class DynamicRowWrapper : INotifyPropertyChanged
+  {
+    private readonly IDictionary<string, object?> _data;
+
+    public event PropertyChangedEventHandler? PropertyChanged;
+
+    public DynamicRowWrapper(ExpandoObject expando)
+    {
+      _data = expando;
+      if (expando is INotifyPropertyChanged notifyExpando)
+      {
+        notifyExpando.PropertyChanged += (_, e) =>
+        {
+          if (!string.IsNullOrEmpty(e.PropertyName))
+          {
+            OnIndexerChanged(e.PropertyName);
+          }
+        };
+      }
+    }
+
+    public object? this[string key]
+    {
+      get => _data.TryGetValue(key, out var val) ? val : null;
+      set
+      {
+        if (_data.TryGetValue(key, out var oldVal) && Equals(oldVal, value))
+          return;
+
+        _data[key] = value;
+
+        OnIndexerChanged(key);
+      }
+    }
+
+    public IDictionary<string, object?> Data => _data;
+
+    private void OnIndexerChanged(string key)
+    {
+      PropertyChanged?.Invoke(this, new PropertyChangedEventArgs($"Item[{key}]"));
+      // Alternativ (Falls Avalonia in manchen Versionen den exakten Key ignoriert):
+      // PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Item[]"));
+    }
+  }
 
   private enum QueryCancellationReason
   {

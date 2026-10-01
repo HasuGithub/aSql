@@ -98,12 +98,12 @@ public class DatDefTable : IDisposable
     return _sql.ToString();
   }
 
-  private string GetUpDateSqlIntern(CondTypes condType, bool takeOnlyChangedFields, bool useParamSyntax)
+  public string GetUpDateSqlIntern(CondTypes condType, bool takeOnlyChangedFields)
   {
     _sql.Length = 0;
     _dd.BuildSqlAddSqlTypePart(_sql, SqlTypes.Update);
     _dd.BuildSqlAddSqlTablePart(_sql, SqlTypes.Update, true, Name, "");
-    _dd.BuildSqlAddUpDatePart(_sql, takeOnlyChangedFields, useParamSyntax, MyIndex);
+    _dd.BuildSqlAddUpDatePart(_sql, takeOnlyChangedFields, false, MyIndex);
     switch (condType)
     {
       case CondTypes.None:
@@ -146,12 +146,12 @@ public class DatDefTable : IDisposable
 
   public int WriteUpDate()
   {
-    return _dd.ExecuteWrite(() => GetUpDateSqlIntern(CondTypes.DdCondition, false, false), nameof(WriteUpDate));
+    return _dd.ExecuteWrite(() => GetUpDateSqlIntern(CondTypes.DdCondition, false), nameof(WriteUpDate));
   }
 
   public int WriteUpDate(CondTypes condType, bool takeOnlyChangedFields)
   {
-    return _dd.ExecuteWrite(() => GetUpDateSqlIntern(condType, takeOnlyChangedFields, false), nameof(WriteUpDate));
+    return _dd.ExecuteWrite(() => GetUpDateSqlIntern(condType, takeOnlyChangedFields), nameof(WriteUpDate));
   }
 
   // ReSharper disable once UnusedMember.Global
