@@ -2,7 +2,8 @@
 
 ******aSql ist ein dotNet Multi-Plattform-SQL-Lightway-Tool, mit einer Avalonia UI als Frontend.******
 
-<img width="1022" height="667" alt="17902711550915827384281017035089" src="https://github.com/user-attachments/assets/734e8622-47a9-4c1a-801f-8fa8c781bcac" />
+<img width="1071" height="836" alt="image" src="https://github.com/user-attachments/assets/c1a97708-790e-43c0-9abe-cb6ac3fdb1fd" />
+
 
 
 Es wurde geschrieben, um, auf Basis des Daten-Schemas einer relationalen Datenbank, schnell SQL-Select-Abfragen, hauptsächlich per Klick oder/und Doppelklick zu generieren, ohne viel schreiben zu müssen...
@@ -17,6 +18,7 @@ Es wurde geschrieben, um, auf Basis des Daten-Schemas einer relationalen Datenba
   - Dadurch OS-Unabhängigkeit für Windows, Linux und mac OS
 - DB-Schema als Baumstruktur inkl. Spalten, Indizes und Fremdschlüsseln
 - Schnelle SQL-Generierung und Ausführung per Maus-Klick über das DB-Schema
+- Editieren von Feldern in der DB direkt aus dem Ausgabe-Grid
 - OS-Unabhängigkeit zum Schnuppern für WPF-Entwickler
 - Der Code kann genutzt werden, um DB-Operationen für eigene Belange zu testen
 - SQL-Ausführung über einen Timer
@@ -87,6 +89,7 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
   - Das SQL muss dann manuell neu ausgeführt werden
 - Erzeugtes Command wird als Baumstruktur und als SQL-Text angezeigt
 - Der Output wird als Grid angezeigt
+- Wenn das Treeview den Fokus hat, kann man einen Buchstaben auf der Tastatur drücken, um zur ersten Tabelle zu positionieren, die mit dem Buchstaben beginnt
 
 ### Foreign Keys
 
@@ -167,7 +170,7 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
 
 ### Ausgabe
 
-<img width="605" height="350" alt="17902714994067431319113914676913" src="https://github.com/user-attachments/assets/74cc263e-7d8a-4da2-8117-b99d89be99fa" />
+<img width="1070" height="440" alt="image" src="https://github.com/user-attachments/assets/c9018ff9-a81d-4d89-b119-8f95a31914b7" />
 
 
 - Im Ausgabe-Bereich (unten rechts im Haupt-Dialog) können
@@ -178,6 +181,9 @@ Ich habe mir (wie viele andere auch) die bekannte Chinook-Db als Basis für die 
     - SQL einfach manuell nochmals ausgeführt werden
     - Bei länger laufenden SQL-Befehlen wird ein Cancel-Command angeboten, um die Ausführung abzubrechen
     - Unten rechts kann zudem noch die maximale Anzahl der Ausgabezeilen angepasst werden, wenn unter den Einstellungen "SELECT TOP" gewählt wurde
+    - In den Zellen kann direkt editiert werden, wenn die Spaltenüberschrift grün dargestellt wird
+      - Die Spalten werden editierbar, wenn ein eindeutiger Index zur Tabelle des Feldes mit in der Anzeige vorhanden ist
+      - Wenn es keinen eindeutigen Index gibt, wird die betroffene Spaltenüberschrift rot angezeigt
 
 ### Einstellungen
 
