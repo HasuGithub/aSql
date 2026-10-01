@@ -242,7 +242,7 @@
       </Border>
 
       <Grid Grid.Row="2" ColumnDefinitions="317,1.5,*">
-        <Grid Grid.Column="0" RowDefinitions="4*,1.5,*">
+        <Grid Grid.Column="0" RowDefinitions="2.5*,1.5,*">
           <views1:DbTreeView Grid.Row="0" DataContext="{CompiledBinding DbTreeView}" />
 
           <GridSplitter Grid.Row="1"

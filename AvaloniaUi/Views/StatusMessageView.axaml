@@ -56,7 +56,7 @@
                        IsReadOnly="True"
                        TextWrapping="Wrap"
                        Foreground="{CompiledBinding Foreground}"
-                       Background="Black"
+                       Background="#FF222428"
                        Margin="0,0,0,2" />
             </DataTemplate>
           </ItemsControl.ItemTemplate>

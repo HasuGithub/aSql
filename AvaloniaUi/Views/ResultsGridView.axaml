@@ -93,7 +93,7 @@
                                     ContentTemplate="{TemplateBinding ContentTemplate}"
                                     HorizontalAlignment="Stretch"
                                     VerticalAlignment="Stretch" Height="21"
-                                    Margin="1,1,1,1" />
+                                    Margin="3,5,3,3" />
 
                   <Rectangle Grid.Column="1"
                              Width="1"
@@ -117,6 +117,7 @@
           <Style Selector="DataGridRow">
             <Setter Property="FontSize"
                     Value="{Binding FontSize, RelativeSource={RelativeSource Mode=FindAncestor, AncestorType=DataGrid}}" />
+            <Setter Property="Height" Value="23" />
             <Setter Property="FontFamily" Value="Inter, Segoe UI, Arial" />
             <Setter Property="Foreground" Value="#FFC7CDD4" />
           </Style>
