@@ -7,7 +7,7 @@ public sealed class ColumnSchema(
   bool isAutoIncrement,
   bool isPrimaryKey,
   bool isUnique,
-  int length,
+  long length,
   int scale,
   string? description)
 {
@@ -17,7 +17,7 @@ public sealed class ColumnSchema(
   public bool IsAutoIncrement { get; set; } = isAutoIncrement;
   public bool IsPrimaryKey { get; set; } = isPrimaryKey;
   public bool IsUnique { get; set; } = isUnique;
-  public int Length { get; set; } = length;
+  public long Length { get; set; } = length;
   public int Scale { get; set; } = scale;
   public string? Description { get; set; } = description;
 }

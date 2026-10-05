@@ -109,13 +109,15 @@ public static class ConnectionStore
         return $"Server={entry.ServerName};" +
                $"Database={entry.DatabaseName};" +
                $"Uid={entry.UserName};" +
-               $"Pwd={plaintextPassword};";
+               $"Pwd={plaintextPassword};" +
+               "ConvertZeroDateTime=True;";
       case DbProvider.MariaDb:
         return $"Server={entry.ServerName};" +
                $"Port={entry.Port};" +
                $"Database={entry.DatabaseName};" +
                $"Uid={entry.UserName};" +
-               $"Pwd={plaintextPassword};";
+               $"Pwd={plaintextPassword};" +
+               "ConvertZeroDateTime=True;";
       default:
         return string.Empty;
     }

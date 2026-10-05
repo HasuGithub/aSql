@@ -132,7 +132,7 @@ public sealed class MariaDbSchemaProvider : ISchemaProvider
 
         var isAutoIncrement = reader.GetString(7).Contains("auto_increment", StringComparison.OrdinalIgnoreCase);
 
-        var length = reader.IsDBNull(3) ? 0 : Convert.ToInt32(reader.GetValue(3), CultureInfo.InvariantCulture);
+        var length = reader.IsDBNull(3) ? 0 : Convert.ToInt64(reader.GetValue(3), CultureInfo.InvariantCulture);
         var scale = reader.IsDBNull(5) ? 0 : Convert.ToInt32(reader.GetValue(5), CultureInfo.InvariantCulture);
 
         var isPrimaryKey = primList.Any(x => x == tableName + "_" + colName);

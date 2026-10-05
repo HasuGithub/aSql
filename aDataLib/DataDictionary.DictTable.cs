@@ -102,7 +102,7 @@ public class DictTable(string tableName, bool sortCols)
     _lSlReferencedBy.TrimToSize();
   }
 
-  public DictColumn? ColumnsAdd(string colName, bool required, DbFieldType fieldType, int scale, int length,
+  public DictColumn? ColumnsAdd(string colName, bool required, DbFieldType fieldType, int scale, long length,
     int ordinalPos, string description, bool isAutoIncrement, bool isUnique)
   {
     if (string.IsNullOrWhiteSpace(colName)) return null;

@@ -114,7 +114,7 @@ public sealed class OracleSchemaProvider : ISchemaProvider
         var isNullable = reader.GetBoolean(6);
         var dataType = reader.GetString(2);
         var isAutoIncrement = !reader.IsDBNull(7) && reader.GetString(7).Length > 0;
-        var length = reader.IsDBNull(3) ? 0 : reader.GetInt32(3);
+        var length = reader.IsDBNull(3) ? 0 : reader.GetInt64(3);
         var scale = reader.IsDBNull(5) ? 0 : Convert.ToInt32(reader.GetValue(5), CultureInfo.InvariantCulture);
 
         aktColumns.Add(new ColumnSchema(

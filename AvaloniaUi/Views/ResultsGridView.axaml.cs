@@ -181,9 +181,12 @@ public partial class ResultsGridView : UserControl
       editingTextBox?.Text = _originalCellValueBackup?.ToString() ?? string.Empty;
       grid.CancelEdit(DataGridEditingUnit.Cell);
     }
-    catch
+    catch (Exception ex)
     {
-      // Ignored
+      if (DataContext is SqlEditorViewModel sqleditVm)
+      {
+        sqleditVm.StatusMessage = $"Error updating cell: {ex.Message}";
+      }
     }
     finally
     {
