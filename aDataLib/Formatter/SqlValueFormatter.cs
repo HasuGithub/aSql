@@ -91,7 +91,7 @@ public static class SqlValueFormatter
     // Flexibles Parsen gängiger Formate (ISO, Deutsch, etc.) 
     if (DateTime.TryParse(input, CultureInfo.CurrentCulture, out var dt) ||
         DateTime.TryParse(input, CultureInfo.InvariantCulture, out dt))
-      return $"CAST('{dt:dd.MM.yyyy HH:mm:ss.fff}' AS DATE)";
+      return $"CAST('{dt:yyyy-MM-dd HH:mm:ss.fff}' AS DATE)";
     throw new FormatException($"'{input}' konnte nicht als Datum/Uhrzeit interpretiert werden.");
   }
 
@@ -104,7 +104,7 @@ public static class SqlValueFormatter
         !DateOnly.TryParse(input, CultureInfo.InvariantCulture, out date))
       throw new FormatException($"'{input}' konnte nicht als reines Datum interpretiert werden.");
 
-    return $"CAST('{date:dd.MM.yyyy}' AS DATE)";
+    return $"CAST('{date:yyyy-MM-dd}' AS DATE)";
   }
 
   private static string FormatSimpleDate(string input)
@@ -113,7 +113,7 @@ public static class SqlValueFormatter
         !DateOnly.TryParse(input, CultureInfo.InvariantCulture, out date))
       throw new FormatException($"'{input}' konnte nicht als reines Datum interpretiert werden.");
 
-    return $"CAST('{date:dd.MM.yyyy}' AS DATE)";
+    return $"CAST('{date:yyyy-MM-dd}' AS DATE)";
   }
 
   private static string FormatTimeOnly(string input)
