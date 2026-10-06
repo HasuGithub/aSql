@@ -48,8 +48,8 @@ jobs:
     - name: Create Zip Archives for Release
       shell: pwsh
       run: |
-        Compress-Archive -Path ./publish-selfcontained/* -DestinationPath ./aSql-SelfContained-Win64.zip
-        Compress-Archive -Path ./publish-dependent/* -DestinationPath ./aSql-Without-Dotnet-Win64.zip
+        Compress-Archive -Path "$pwd/publish-selfcontained/*" -DestinationPath "$pwd/aSql-SelfContained-Win64.zip"
+        Compress-Archive -Path "$pwd/publish-dependent/*" -DestinationPath "$pwd/aSql-Without-Dotnet-Win64.zip"
 
     # Lädt das 1. Output (Vollständiger Ordner) als GitHub-Artefakt hoch
     - name: Upload Self-Contained Artifact
