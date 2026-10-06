@@ -38,7 +38,7 @@ public static class SqlValueFormatter
       DbFieldType.Boolean => FormatBoolean(trimmedInput, rdbms),
 
       // 6. Datums- und Zeitwerte 
-      DbFieldType.DateTime => FormatDateTime(trimmedInput, useSimpleDate),
+      DbFieldType.DateTime => FormatDateTime(trimmedInput, rdbms, useSimpleDate),
       DbFieldType.DateOnly => FormatDateOnly(trimmedInput, useSimpleDate),
       DbFieldType.TimeOnly => FormatTimeOnly(trimmedInput),
       DbFieldType.DateTimeOffset => FormatDateTimeOffset(trimmedInput, rdbms),
@@ -84,14 +84,14 @@ public static class SqlValueFormatter
     };
   }
 
-  private static string FormatDateTime(string input, bool useSimpleDate = false)
+  private static string FormatDateTime(string input, DataBaseTypes rdbms, bool useSimpleDate = false)
   {
     if (useSimpleDate) return FormatSimpleDate(input);
 
     // Flexibles Parsen gängiger Formate (ISO, Deutsch, etc.) 
     if (DateTime.TryParse(input, CultureInfo.CurrentCulture, out var dt) ||
         DateTime.TryParse(input, CultureInfo.InvariantCulture, out dt))
-      return $"CAST('{dt:yyyy-MM-dd HH:mm:ss.fff}' AS DATE)";
+      return rdbms == DataBaseTypes.Oracle ? $"TO_TIMESTAMP('{dt:yyyy-MM-ddTHH:mm:ss.fff}', 'YYYY-MM-DD\"T\"HH24:MI:SS.FF3')" : $"CAST('{dt:yyyy-MM-ddTHH:mm:ss.fff}' AS DATETIME)";
     throw new FormatException($"'{input}' konnte nicht als Datum/Uhrzeit interpretiert werden.");
   }
 
