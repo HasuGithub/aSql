@@ -468,12 +468,10 @@ public sealed class DatDef
         }
 
         if (DbConnect.UseUpperCaseSql)
-          sql.Append(_brackOpen).Append(this[tabIndex]!.Name.ToUpper()).Append(_brackClose)
-            .Append('.').Append(_brackOpen).Append(field.Name.ToUpper()).Append(_brackClose)
+          sql.Append(_brackOpen).Append(field.Name.ToUpper()).Append(_brackClose)
             .Append(" = ");
         else
-          sql.Append(_brackOpen).Append(this[tabIndex]!.Name).Append(_brackClose)
-            .Append('.').Append(_brackOpen).Append(field.Name).Append(_brackClose)
+          sql.Append(_brackOpen).Append(field.Name).Append(_brackClose)
             .Append(" = ");
         BuildSqlAppendFieldValue(sql, field.FieldType, field.Value, UseSimpleDate);
         sql.Append('\n');

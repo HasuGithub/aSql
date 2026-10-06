@@ -178,7 +178,7 @@ public sealed class SqlServerSchemaProvider : ISchemaProvider
       var dataType = reader.GetString(2);
       var isAutoIncrement =
         !reader.IsDBNull(3) && Convert.ToInt32(reader.GetValue(3), CultureInfo.InvariantCulture) == 1;
-      var length = reader.IsDBNull(4) ? 0 : reader.GetInt64(4);
+      var length = reader.IsDBNull(4) ? 0 : reader.GetInt32(4);
       var scale = reader.IsDBNull(5) ? 0 : Convert.ToInt32(reader.GetValue(5), CultureInfo.InvariantCulture);
       var isPrimaryKey = Convert.ToInt32(reader.GetValue(6), CultureInfo.InvariantCulture) == 1;
       var isUniqueConstraint = Convert.ToInt32(reader.GetValue(7), CultureInfo.InvariantCulture) == 1;
