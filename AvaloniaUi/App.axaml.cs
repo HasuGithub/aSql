@@ -57,8 +57,6 @@ public class App : Application
             {
               mainVm.DbConnect = connectVm.Connection;
               mainVm.UseTopEnabled = true;
-              //mainVm.UseUpperCaseSql = true;
-              //mainVm.UseSimpleDate = true;
             });
           else
             desktop.Shutdown();
