@@ -44,12 +44,12 @@ jobs:
     - name: Publish the Application (Framework-Dependent)
       run: dotnet publish AvaloniaUi/aSql.csproj -c ${{ matrix.configuration }} -r win-x64 --no-self-contained -p:PublishSingleFile=true -o ./publish-dependent
 
-    # Erstellt ZIP-Archive aus den vollständigen Ausgabeordnern (inkl. aller Assemblys/DLLs)
+    # Erstellt ZIP-Archive aus den vollständigen Ausgabeordnern
     - name: Create Zip Archives for Release
       shell: pwsh
       run: |
-        Compress-Archive -Path "$pwd/publish-selfcontained/*" -DestinationPath "$pwd/aSql-SelfContained-Win64.zip"
-        Compress-Archive -Path "$pwd/publish-dependent/*" -DestinationPath "$pwd/aSql-Without-Dotnet-Win64.zip"
+        Compress-Archive -Path "$pwd/publish-selfcontained" -DestinationPath "$pwd/aSql-SelfContained-Win64.zip"
+        Compress-Archive -Path "$pwd/publish-dependent" -DestinationPath "$pwd/aSql-Without-Dotnet-Win64.zip"
 
     # Lädt das 1. Output (Vollständiger Ordner) als GitHub-Artefakt hoch
     - name: Upload Self-Contained Artifact
