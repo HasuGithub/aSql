@@ -224,6 +224,18 @@ In der Oberen Symbolleiste des Haupt-Dialogs gibt es (von links ausgehend) Schal
 
 ## Veröffentlichen der Anwendung
 
+### Releases
+
+- Windows
+  - Für Windows werden immer zwei Releases, rechts auf der Seite, im aktuellen Release angeboten
+    - Einmal als einfache Single-App und einmal als Single-App mit integrierten dotNet
+- Linux
+  - muss mit einem Build-Tool (bspw. Visual Studio oder dergleichen) erzeugt werden
+  - Hier nehme ich gerne Pull-Request, wenn ihr da entsprechende Build-Varianten habt
+- Mac OS
+  - muss mit einem Build-Tool (bspw. Visual Studio oder dergleichen) erzeugt werden
+  - Hier nehme ich gerne Pull-Request, wenn ihr da entsprechende Build-Varianten habt
+
 ### Windows
 
 ```
