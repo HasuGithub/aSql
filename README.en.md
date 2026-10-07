@@ -1,6 +1,6 @@
 # aSql
 
-<p align="center">[🇩🇪 Deutsch](README.md) &nbsp;•&nbsp; **🇬🇧 English**</p>
+[Deutsch](README.md) | **English**
 
 ******aSql is a .NET cross-platform lightweight SQL helper tool with an Avalonia UI as frontend.******
 
