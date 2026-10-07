@@ -1,6 +1,6 @@
 # aSql
 
-**Deutsch** | [English](README.en.md)
+<p align="center">**🇩🇪 Deutsch** &nbsp;•&nbsp; [🇬🇧 English](README.en.md)</p>
 
 ******aSql ist ein dotNet Multi-Plattform-SQL-Lightway-Tool, mit einer Avalonia UI als Frontend.******
 
