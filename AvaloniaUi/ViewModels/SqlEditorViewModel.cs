@@ -5,19 +5,13 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Reactive.Linq;
 using System.Windows.Input;
-
 using aDataLib;
 using Avalonia.Threading;
-
 using Microsoft.Data.SqlClient;
-
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
-
 using MySqlConnector;
-
 using Oracle.ManagedDataAccess.Client;
-
 using ReactiveUI;
 
 namespace aSql.ViewModels;
@@ -35,6 +29,8 @@ public sealed class SqlEditorViewModel : ViewModelBase
   private readonly DispatcherTimer _autoExecuteTimer;
   private readonly Lock _executionStateSync = new();
   private CancellationTokenSource? _currentManualExecutionCts;
+
+  private bool _isExecuting;
 
   private string normalizedConnectionString = string.Empty;
 
@@ -202,8 +198,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
     this.WhenAnyValue(x => x.SqlText).Select(s => !string.IsNullOrWhiteSpace(s));
 
   public IObservable<bool> CanClear => this.WhenAnyValue(x => x.SqlText).Select(s => !string.IsNullOrWhiteSpace(s));
-
-  private bool _isExecuting;
 
   public bool IsExecuting
   {
@@ -547,7 +541,13 @@ public sealed class SqlEditorViewModel : ViewModelBase
 
     if (string.IsNullOrWhiteSpace(SqlText))
     {
-      StatusMessage = "Keine ausführbare SQL-Anweisung.";
+      StatusMessage = "Fehler: Keine ausführbare SQL-Anweisung.";
+      return;
+    }
+
+    if (SqlText.ToLower().Trim().StartsWith("select") is false)
+    {
+      StatusMessage = "Fehler: Keine ausführbare SELECT-SQL-Anweisung.";
       return;
     }
 
@@ -585,10 +585,10 @@ public sealed class SqlEditorViewModel : ViewModelBase
         timeoutSeconds,
         limitRows,
         maxRows,
-        columnNames,
         executionCts.Token,
         manualCancelCts.Token);
 
+      ResultsGrid.ReaderColumnNames = loadResult.ReaderColNames;
       ResultsGrid.ColumnNames = columnNames;
       ResultsGrid.SetRows(loadResult.Table);
       ResultsGrid.SetCurrDatDef(SqlDefinition, this);
@@ -657,12 +657,12 @@ public sealed class SqlEditorViewModel : ViewModelBase
     int timeoutSeconds,
     bool limitRows,
     int maxRows,
-    IReadOnlyList<DatDefTable.DatDefTableField> columnNames,
     CancellationToken cancellationToken,
     CancellationToken manualCancellationToken)
   {
     var table = new ObservableCollection<DynamicRowWrapper>();
     var rowCount = 0;
+    var readerColNames = Array.Empty<string>();
 
     await con.OpenAsync(cancellationToken).ConfigureAwait(false);
     await using var cmd = con.CreateCommand();
@@ -701,33 +701,22 @@ public sealed class SqlEditorViewModel : ViewModelBase
       await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
         .ConfigureAwait(false);
 
-      // var fieldCount = reader.FieldCount;
-      // var names = new string[fieldCount];
-      //for (var i = 0; i < fieldCount; i++)
-      //{
-      //  names[i] = reader.GetName(i);
-      //  table.Columns.Add(names[i], reader.GetFieldType(i));
-      //}
-
-      // var values = new object[fieldCount];
+      readerColNames =
+      [
+        .. Enumerable.Range(0, reader.FieldCount)
+          .Select(reader.GetName)
+      ];
 
       while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && (!limitRows || rowCount < maxRows))
       {
         cancellationToken.ThrowIfCancellationRequested();
 
-        //IDictionary<string, object?> row = new ExpandoObject();
-
         var row = new DynamicRowWrapper(new ExpandoObject());
+        readerColNames
+          .Select((columnName, i) => new { columnName, value = reader.IsDBNull(i) ? null! : reader.GetValue(i) })
+          .ToList()
+          .ForEach(item => row[item.columnName] = item.value);
 
-        for (var i = 0; i < reader.FieldCount; i++)
-        {
-          var columnName = columnNames[i].Alias.Length > 0 ? columnNames[i].Alias : columnNames[i].Name;
-          var value = reader.IsDBNull(i) ? null! : reader.GetValue(i);
-          row[columnName] = value;
-        }
-
-        //reader.GetValues(values);
-        //var rowValues = (object[])values.Clone(); // isolate per-row values
         table.Add(row);
 
         rowCount++;
@@ -739,10 +728,10 @@ public sealed class SqlEditorViewModel : ViewModelBase
         ? QueryCancellationReason.Manual
         : QueryCancellationReason.Timeout;
 
-      return new QueryLoadResult(table, rowCount, limitRows, maxRows, reason);
+      return new QueryLoadResult(table, rowCount, limitRows, maxRows, readerColNames, reason);
     }
 
-    return new QueryLoadResult(table, rowCount, limitRows, maxRows, QueryCancellationReason.None);
+    return new QueryLoadResult(table, rowCount, limitRows, maxRows, readerColNames, QueryCancellationReason.None);
   }
 
   public void CheckSql()
@@ -1072,6 +1061,7 @@ public sealed class SqlEditorViewModel : ViewModelBase
     int RowCount,
     bool LimitRows,
     int MaxRows,
+    string[] ReaderColNames,
     QueryCancellationReason CancellationReason);
 
   private enum QueryCancellationReason
