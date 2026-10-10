@@ -90,32 +90,34 @@ public partial class ResultsGridView : UserControl
       vm.PropertyChanged += (_, args) =>
       {
         if (args.PropertyName != nameof(ResultsGridViewModel.ColumnNames)) return;
-        if (vm.ColumnNames != null) RebuildColumns(grid, vm.ColumnNames);
+        if (vm.ColumnNames != null) RebuildColumns(grid, vm.ReaderDatDef!, vm.ReaderColumnNames);
       };
 
-      if (vm.ColumnNames is { Count: > 0 }) RebuildColumns(grid, vm.ColumnNames);
+      if (vm.ColumnNames is { Count: > 0 }) RebuildColumns(grid, vm.ReaderDatDef!, vm.ReaderColumnNames);
     });
   }
 
-  private static void RebuildColumns(DataGrid grid, IReadOnlyList<DatDefTable.DatDefTableField> columnNames)
+  private static void RebuildColumns(DataGrid grid, DatDef readerDatDef, string[]? readerColumnNames)
   {
     grid.Columns.Clear();
 
-    foreach (var t in columnNames)
+    if (readerColumnNames is null) return;
+
+    foreach (var r in readerColumnNames)
     {
-      var name = t.Alias.Length > 0 ? t.Alias : t.Name;
+      var t = readerDatDef.AllFields.FirstOrDefault(c => c.Value.Name == r || c.Value.Alias == r);
       grid.Columns.Add(new DataGridTextColumn
       {
-        Header = name,
-        IsReadOnly = t.MyTable.HasUniqueIndex is false,
-        Binding = new Binding($"[{name}]")
+        Header = r,
+        IsReadOnly = t.Value is null || t.Value.MyTable.HasUniqueIndex is false,
+        Binding = new Binding($"[{r}]")
         {
           Converter = new NullToNullStringConverter(),
           Mode = BindingMode.TwoWay
         }
       });
-      var header = GetHeaderFromColumn(grid, name);
-      header?.Foreground = t.MyTable.HasUniqueIndex
+      var header = GetHeaderFromColumn(grid, r);
+      header?.Foreground = t.Value?.MyTable.HasUniqueIndex == true
         ? new SolidColorBrush(Colors.YellowGreen)
         : new SolidColorBrush(Colors.OrangeRed);
     }
@@ -183,10 +185,7 @@ public partial class ResultsGridView : UserControl
     }
     catch (Exception ex)
     {
-      if (DataContext is SqlEditorViewModel sqleditVm)
-      {
-        sqleditVm.StatusMessage = $"Error updating cell: {ex.Message}";
-      }
+      if (DataContext is SqlEditorViewModel sqleditVm) sqleditVm.StatusMessage = $"Error updating cell: {ex.Message}";
     }
     finally
     {

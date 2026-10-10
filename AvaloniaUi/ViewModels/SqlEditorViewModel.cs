@@ -5,19 +5,13 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Reactive.Linq;
 using System.Windows.Input;
-
 using aDataLib;
 using Avalonia.Threading;
-
 using Microsoft.Data.SqlClient;
-
 using MsBox.Avalonia;
 using MsBox.Avalonia.Enums;
-
 using MySqlConnector;
-
 using Oracle.ManagedDataAccess.Client;
-
 using ReactiveUI;
 
 namespace aSql.ViewModels;
@@ -35,6 +29,8 @@ public sealed class SqlEditorViewModel : ViewModelBase
   private readonly DispatcherTimer _autoExecuteTimer;
   private readonly Lock _executionStateSync = new();
   private CancellationTokenSource? _currentManualExecutionCts;
+
+  private bool _isExecuting;
 
   private string normalizedConnectionString = string.Empty;
 
@@ -202,8 +198,6 @@ public sealed class SqlEditorViewModel : ViewModelBase
     this.WhenAnyValue(x => x.SqlText).Select(s => !string.IsNullOrWhiteSpace(s));
 
   public IObservable<bool> CanClear => this.WhenAnyValue(x => x.SqlText).Select(s => !string.IsNullOrWhiteSpace(s));
-
-  private bool _isExecuting;
 
   public bool IsExecuting
   {
@@ -547,7 +541,13 @@ public sealed class SqlEditorViewModel : ViewModelBase
 
     if (string.IsNullOrWhiteSpace(SqlText))
     {
-      StatusMessage = "Keine ausführbare SQL-Anweisung.";
+      StatusMessage = "Fehler: Keine ausführbare SQL-Anweisung.";
+      return;
+    }
+
+    if (SqlText.ToLower().Trim().StartsWith("select") is false)
+    {
+      StatusMessage = "Fehler: Keine ausführbare SELECT-SQL-Anweisung.";
       return;
     }
 
@@ -580,15 +580,17 @@ public sealed class SqlEditorViewModel : ViewModelBase
       SetCurrentManualExecutionCts(manualCancelCts);
 
       var loadResult = await LoadQueryResultAsync(
+        DbConnect!,
         con,
         sqlToExecute,
         timeoutSeconds,
         limitRows,
         maxRows,
-        columnNames,
         executionCts.Token,
         manualCancelCts.Token);
 
+      ResultsGrid.ReaderColumnNames = loadResult.ReaderColNames;
+      ResultsGrid.ReaderDatDef = loadResult.ReaderDatDef;
       ResultsGrid.ColumnNames = columnNames;
       ResultsGrid.SetRows(loadResult.Table);
       ResultsGrid.SetCurrDatDef(SqlDefinition, this);
@@ -652,82 +654,50 @@ public sealed class SqlEditorViewModel : ViewModelBase
   }
 
   private static async Task<QueryLoadResult> LoadQueryResultAsync(
+    DbConnect dbConnect,
     DbConnection con,
     string sql,
     int timeoutSeconds,
     bool limitRows,
     int maxRows,
-    IReadOnlyList<DatDefTable.DatDefTableField> columnNames,
     CancellationToken cancellationToken,
     CancellationToken manualCancellationToken)
   {
     var table = new ObservableCollection<DynamicRowWrapper>();
     var rowCount = 0;
+    var readerColNames = Array.Empty<string>();
+    var datDef = new DatDef(dbConnect);
 
     await con.OpenAsync(cancellationToken).ConfigureAwait(false);
     await using var cmd = con.CreateCommand();
     cmd.CommandText = sql;
     cmd.CommandTimeout = timeoutSeconds;
 
-    await using var cancellationRegistration = cancellationToken.Register(() =>
-    {
-      try
-      {
-        // ReSharper disable once AccessToDisposedClosure
-        cmd.Cancel();
-      }
-      catch (ObjectDisposedException)
-      {
-      }
-      catch (InvalidOperationException)
-      {
-      }
-
-      try
-      {
-        if (con.State != ConnectionState.Closed)
-          con.Close();
-      }
-      catch (ObjectDisposedException)
-      {
-      }
-      catch (InvalidOperationException)
-      {
-      }
-    });
+    await HandleCommandAndConnectionCancelCleanup();
 
     try
     {
-      await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+      await using var reader = await cmd.ExecuteReaderAsync(CommandBehavior.SequentialAccess | CommandBehavior.KeyInfo, cancellationToken)
         .ConfigureAwait(false);
 
-      // var fieldCount = reader.FieldCount;
-      // var names = new string[fieldCount];
-      //for (var i = 0; i < fieldCount; i++)
-      //{
-      //  names[i] = reader.GetName(i);
-      //  table.Columns.Add(names[i], reader.GetFieldType(i));
-      //}
+      await ExtractSchemaAndAddFields(reader);
 
-      // var values = new object[fieldCount];
+      readerColNames =
+      [
+        .. Enumerable.Range(0, reader.VisibleFieldCount)
+          .Select(reader.GetName)
+      ];
 
       while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && (!limitRows || rowCount < maxRows))
       {
         cancellationToken.ThrowIfCancellationRequested();
 
-        //IDictionary<string, object?> row = new ExpandoObject();
-
         var row = new DynamicRowWrapper(new ExpandoObject());
+        readerColNames
+          .Select((columnName, i) => new { columnName, value = reader.IsDBNull(i) ? null! : reader.GetValue(i) })
+          .ToList()
+          .ForEach(item => row[item.columnName] = item.value);
 
-        for (var i = 0; i < reader.FieldCount; i++)
-        {
-          var columnName = columnNames[i].Alias.Length > 0 ? columnNames[i].Alias : columnNames[i].Name;
-          var value = reader.IsDBNull(i) ? null! : reader.GetValue(i);
-          row[columnName] = value;
-        }
-
-        //reader.GetValues(values);
-        //var rowValues = (object[])values.Clone(); // isolate per-row values
         table.Add(row);
 
         rowCount++;
@@ -739,10 +709,68 @@ public sealed class SqlEditorViewModel : ViewModelBase
         ? QueryCancellationReason.Manual
         : QueryCancellationReason.Timeout;
 
-      return new QueryLoadResult(table, rowCount, limitRows, maxRows, reason);
+      return new QueryLoadResult(table, rowCount, limitRows, maxRows, readerColNames, datDef, reason);
     }
 
-    return new QueryLoadResult(table, rowCount, limitRows, maxRows, QueryCancellationReason.None);
+    return new QueryLoadResult(table, rowCount, limitRows, maxRows, readerColNames, datDef, QueryCancellationReason.None);
+
+    async Task ExtractSchemaAndAddFields(DbDataReader reader)
+    {
+      var schema = await reader.GetSchemaTableAsync(cancellationToken);
+      if (schema is not null)
+      {
+        foreach (DataRow row in schema.Rows)
+        {
+          var colName = row.Field<string>("ColumnName");
+          var baseTableName = row.Field<string>("BaseTableName");
+          var baseColName = row.Field<string>("BaseColumnName");
+          var isHidden = row["IsHidden"] is bool && (bool)row["IsHidden"]; 
+
+          if (isHidden || string.IsNullOrWhiteSpace(baseTableName)) continue;
+          var dTable = datDef.Tables.FirstOrDefault(x => x.Name == baseTableName) ?? datDef.TablesAdd("", baseTableName, "");
+
+          if (dTable!.Fields.FirstOrDefault(x => x.Name == baseColName || x.Alias == colName) is not null) continue;
+          if (baseColName != colName)
+          {
+            dTable.FieldsAdd(AggregateTypes.Nothing, baseColName!, colName!);
+          }
+          else
+          {
+            dTable.FieldsAdd(AggregateTypes.Nothing, colName!, "");
+          }
+        }
+      }
+    }
+
+    async Task HandleCommandAndConnectionCancelCleanup()
+    {
+      await using var cancellationRegistration = cancellationToken.Register(() =>
+      {
+        try
+        {
+          // ReSharper disable once AccessToDisposedClosure
+          cmd.Cancel();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+
+        try
+        {
+          if (con.State != ConnectionState.Closed)
+            con.Close();
+        }
+        catch (ObjectDisposedException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+      });
+    }
   }
 
   public void CheckSql()
@@ -1072,6 +1100,8 @@ public sealed class SqlEditorViewModel : ViewModelBase
     int RowCount,
     bool LimitRows,
     int MaxRows,
+    string[] ReaderColNames,
+    DatDef ReaderDatDef,
     QueryCancellationReason CancellationReason);
 
   private enum QueryCancellationReason
