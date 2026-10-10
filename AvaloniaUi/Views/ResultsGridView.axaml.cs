@@ -90,14 +90,14 @@ public partial class ResultsGridView : UserControl
       vm.PropertyChanged += (_, args) =>
       {
         if (args.PropertyName != nameof(ResultsGridViewModel.ColumnNames)) return;
-        if (vm.ColumnNames != null) RebuildColumns(grid, vm.ColumnNames, vm.ReaderColumnNames);
+        if (vm.ColumnNames != null) RebuildColumns(grid, vm.ReaderDatDef!, vm.ReaderColumnNames);
       };
 
-      if (vm.ColumnNames is { Count: > 0 }) RebuildColumns(grid, vm.ColumnNames, vm.ReaderColumnNames);
+      if (vm.ColumnNames is { Count: > 0 }) RebuildColumns(grid, vm.ReaderDatDef!, vm.ReaderColumnNames);
     });
   }
 
-  private static void RebuildColumns(DataGrid grid, IReadOnlyList<DatDefTable.DatDefTableField> columnNames, string[]? readerColumnNames)
+  private static void RebuildColumns(DataGrid grid, DatDef readerDatDef, string[]? readerColumnNames)
   {
     grid.Columns.Clear();
 
@@ -105,11 +105,11 @@ public partial class ResultsGridView : UserControl
 
     foreach (var r in readerColumnNames)
     {
-      var t = columnNames.FirstOrDefault(c => c.Name == r || c.Alias == r);
+      var t = readerDatDef.AllFields.FirstOrDefault(c => c.Value.Name == r || c.Value.Alias == r);
       grid.Columns.Add(new DataGridTextColumn
       {
         Header = r,
-        IsReadOnly = t is null || t.MyTable.HasUniqueIndex is false,
+        IsReadOnly = t.Value is null || t.Value.MyTable.HasUniqueIndex is false,
         Binding = new Binding($"[{r}]")
         {
           Converter = new NullToNullStringConverter(),
@@ -117,7 +117,7 @@ public partial class ResultsGridView : UserControl
         }
       });
       var header = GetHeaderFromColumn(grid, r);
-      header?.Foreground = t?.MyTable.HasUniqueIndex == true
+      header?.Foreground = t.Value?.MyTable.HasUniqueIndex == true
         ? new SolidColorBrush(Colors.YellowGreen)
         : new SolidColorBrush(Colors.OrangeRed);
     }

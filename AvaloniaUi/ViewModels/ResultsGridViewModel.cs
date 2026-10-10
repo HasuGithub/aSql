@@ -34,6 +34,12 @@ public sealed class ResultsGridViewModel : ViewModelBase
     set => this.RaiseAndSetIfChanged(ref field, value ?? []);
   }
 
+  public DatDef? ReaderDatDef
+  {
+    get;
+    set => this.RaiseAndSetIfChanged(ref field, value);
+  }
+
 
   public DynamicRowWrapper? SelectedItem
   {
@@ -61,8 +67,8 @@ public sealed class ResultsGridViewModel : ViewModelBase
 
   public bool UpdateCell(string fieldName, string newValue, DynamicRowWrapper dRow)
   {
-    if (SelectedItem is null || _currDatDef is null || _sqlEditorViewModel is null) return false;
-    var field = _currDatDef.AllFields.Values.FirstOrDefault(f =>
+    if (SelectedItem is null || ReaderDatDef is null || _sqlEditorViewModel is null) return false;
+    var field = ReaderDatDef.AllFields.Values.FirstOrDefault(f =>
       string.Equals(f.Name, fieldName, StringComparison.CurrentCultureIgnoreCase));
     if (field is null) return false;
     if (field.Value?.ToString() == newValue) return false;
